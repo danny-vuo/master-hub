@@ -3,247 +3,224 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Master Hub — Sales Launchpad</title>
+<title>Master Hub</title>
 <style>
-  :root{
-    color-scheme: light;
-    --me-red:#d9252b;
-    --me-red-dark:#b01e23;
-    --ink:#1a1d21;
-    --charcoal:#202733;
-    --charcoal-2:#2b3342;
-    --muted:#6b7280;
-    --line:#e6e8ec;
-    --bg:#f4f6f9;
-    --card:#ffffff;
-    --shadow:0 1px 2px rgba(16,24,40,.06),0 6px 18px rgba(16,24,40,.08);
-    --shadow-hover:0 8px 28px rgba(217,37,43,.18);
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:var(--bg);color:var(--ink);line-height:1.5;
-    -webkit-font-smoothing:antialiased;
-  }
-  header{
-    background:linear-gradient(120deg,var(--charcoal) 0%,var(--charcoal-2) 60%,#33203a 100%);
-    color:#fff;padding:26px 32px 30px;position:relative;overflow:hidden;
-  }
-  header::after{
-    content:"";position:absolute;right:-60px;top:-60px;width:280px;height:280px;
-    background:radial-gradient(circle,rgba(217,37,43,.35),transparent 70%);
-  }
-  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;position:relative;z-index:1}
-  .brand{display:flex;align-items:center;gap:14px}
-  .logo{
-    width:46px;height:46px;border-radius:11px;background:var(--me-red);
-    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;
-    box-shadow:0 4px 14px rgba(217,37,43,.45);letter-spacing:-1px;
-  }
-  .brand h1{font-size:19px;font-weight:700;letter-spacing:.2px}
-  .brand .sub{font-size:12.5px;color:#aeb6c4;font-weight:500;margin-top:1px}
-  .clock{text-align:right}
-  .clock .time{font-size:23px;font-weight:700;font-variant-numeric:tabular-nums}
-  .clock .date{font-size:12.5px;color:#aeb6c4;margin-top:1px}
-  .greet{position:relative;z-index:1;margin-top:22px}
-  .greet h2{font-size:24px;font-weight:700}
-  .greet p{color:#aeb6c4;font-size:14px;margin-top:3px}
-  .searchwrap{position:relative;z-index:1;margin-top:18px;max-width:520px}
-  #search{
-    width:100%;padding:13px 16px 13px 44px;border:none;border-radius:12px;
-    font-size:14.5px;background:rgba(255,255,255,.96);color:var(--ink);outline:none;
-    box-shadow:0 2px 10px rgba(0,0,0,.15);
-  }
-  .searchwrap svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);opacity:.5}
-  main{max-width:1180px;margin:0 auto;padding:30px 24px 60px}
-  .section-title{
-    display:flex;align-items:center;gap:10px;margin:26px 2px 14px;
-    font-size:12.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);
-  }
-  .section-title::after{content:"";flex:1;height:1px;background:var(--line)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:16px}
-  .tile{
-    background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;
-    text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:12px;
-    box-shadow:var(--shadow);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
-    position:relative;
-  }
-  .tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-hover);border-color:#f0c9cb}
-  .tile-top{display:flex;align-items:center;justify-content:space-between}
-  .ic-wrap{position:relative}
-  .ic{
-    width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;
-    font-weight:800;font-size:17px;color:#fff;letter-spacing:-.5px;flex-shrink:0;
-  }
-  .badge{
-    position:absolute;top:-7px;right:-7px;min-width:21px;height:21px;padding:0 6px;
-    border-radius:999px;background:var(--me-red);color:#fff;font-size:11.5px;font-weight:700;
-    display:none;align-items:center;justify-content:center;border:2px solid var(--card);
-    box-shadow:0 2px 6px rgba(217,37,43,.45);
-  }
-  .badge.show{display:flex}
-  .arrow{opacity:0;transform:translateX(-4px);transition:.16s;color:var(--me-red)}
-  .tile:hover .arrow{opacity:1;transform:translateX(0)}
-  .tile h3{font-size:15.5px;font-weight:700}
-  .tile p{font-size:12.8px;color:var(--muted);line-height:1.45}
-  .subnote{font-size:11.5px;font-weight:600;color:var(--me-red);margin-top:2px;display:none}
-  .subnote.show{display:block}
-  .pill{
-    font-size:10.5px;font-weight:600;color:var(--me-red);background:#fdeaea;
-    padding:2px 8px;border-radius:999px;align-self:flex-start;
-  }
-  footer{max-width:1180px;margin:0 auto;padding:0 24px 50px;color:var(--muted);font-size:12.5px}
-  .note{background:#fff;border:1px dashed var(--line);border-radius:12px;padding:14px 16px;line-height:1.55}
-  .note b{color:var(--ink)}
-  code{background:#f0f1f4;padding:1px 6px;border-radius:5px;font-size:12px}
-  .empty{display:none;text-align:center;color:var(--muted);padding:40px;font-size:14px}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  :root{--red:#d9252b}
+  html,body{height:100%}
+  #desk{position:relative;height:100vh;overflow:hidden;background:linear-gradient(125deg,#1b2130 0%,#262f40 55%,#3a2340 100%);color:#fff;user-select:none}
+  #bar{height:54px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 18px;background:rgba(0,0,0,.28);position:relative;z-index:50}
+  #bar .brand{display:flex;align-items:center;gap:11px}
+  #bar .logo{width:36px;height:36px;border-radius:9px;background:var(--red);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;box-shadow:0 3px 10px rgba(217,37,43,.5)}
+  #bar h1{font-size:15px;font-weight:700}
+  #bar .sub{font-size:11px;color:#aeb6c4}
+  #searchwrap{flex:1;max-width:380px;position:relative}
+  #search{width:100%;padding:9px 12px 9px 34px;border:none;border-radius:9px;font-size:13px;background:rgba(255,255,255,.95);color:#1a1d21;outline:none}
+  #searchwrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.5}
+  #clock{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:#dfe3ea;white-space:nowrap}
+  #clock .d{font-size:11px;color:#aeb6c4;font-weight:400}
+  #launch{position:absolute;top:66px;left:0;right:0;bottom:56px;overflow:auto;padding:6px 20px 20px;z-index:1}
+  .lr{font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:#9aa3b2;margin:16px 2px 9px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:11px}
+  .tile{height:96px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;cursor:pointer;transition:.15s;position:relative;padding:8px}
+  .tile:hover{background:rgba(255,255,255,.13);transform:translateY(-2px)}
+  .ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff;letter-spacing:-.5px}
+  .tile span{font-size:11.5px;color:#e7eaf0;text-align:center;line-height:1.2}
+  .tbadge{position:absolute;top:7px;right:7px;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--red);color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(217,37,43,.5)}
+  .tbadge.show{display:flex}
+  .win{position:absolute;min-width:300px;min-height:200px;width:600px;height:420px;background:#fff;color:#1a1d21;border-radius:12px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.45);display:flex;flex-direction:column;border:1px solid rgba(0,0,0,.12)}
+  .tb{height:42px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 10px 0 13px;background:#f1f3f6;border-bottom:1px solid #e3e6ea;cursor:grab}
+  .tb .ti{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;color:#fff;letter-spacing:-.5px}
+  .tb .tn{font-size:13px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bt{display:flex;gap:7px}
+  .b{width:22px;height:22px;border-radius:50%;border:none;cursor:pointer;color:#3a3f47;font-size:13px;line-height:1}
+  .b.mn{background:#ffbd2e}.b.mx{background:#28c840}.b.cl{background:#ff5f57}
+  .b:hover{filter:brightness(.92)}
+  .bd{flex:1;overflow:auto;position:relative}
+  .bd iframe{width:100%;height:100%;border:0;display:block}
+  .rs{position:absolute;right:2px;bottom:2px;width:16px;height:16px;cursor:nwse-resize;z-index:3;background:linear-gradient(135deg,transparent 50%,#c7ccd4 50%)}
+  .mock{padding:22px 24px}
+  .mock h2{font-size:18px;margin-bottom:4px;font-weight:600}
+  .mock .ld{color:#6b7280;font-size:13px;margin-bottom:18px}
+  .mock .row{display:flex;gap:10px;margin-bottom:10px}.mock .fld{flex:1}
+  .mock label{display:block;font-size:11px;color:#6b7280;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .mock input,.mock select{width:100%;padding:9px 11px;border:1px solid #d8dbe0;border-radius:8px;font-size:13px}
+  .mock .st{display:flex;gap:12px;margin-bottom:16px}
+  .mock .cd{flex:1;background:#f6f7f9;border-radius:10px;padding:12px 14px}
+  .mock .cd .n{font-size:22px;font-weight:700}.mock .cd .l{font-size:11px;color:#6b7280;margin-top:2px}
+  .mock .btn{margin-top:6px;background:var(--red);color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+  table.m{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+  table.m th{text-align:left;color:#6b7280;font-weight:600;border-bottom:1px solid #e3e6ea;padding:7px 6px}
+  table.m td{border-bottom:1px solid #f0f1f4;padding:7px 6px}
+  .ext{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;gap:14px}
+  .ext .big{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;color:#fff}
+  .ext h2{font-size:18px;font-weight:600}
+  .ext p{color:#6b7280;font-size:13px;max-width:360px;line-height:1.5}
+  .ext .open{background:var(--red);color:#fff;border:none;padding:11px 20px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer}
+  .ext .open:hover{background:#b01e23}
+  .ext .sm{font-size:11.5px;color:#9aa3b2}
+  .zlist{margin-top:6px;width:100%;max-width:380px;text-align:left}
+  .zitem{display:flex;gap:8px;padding:7px 10px;background:#f6f7f9;border-radius:8px;margin-bottom:6px;font-size:12px}
+  .zitem .zd{width:6px;height:6px;border-radius:50%;background:var(--red);margin-top:6px;flex-shrink:0}
+  #task{position:absolute;left:0;right:0;bottom:0;height:56px;z-index:60;display:flex;align-items:center;gap:8px;padding:0 14px;background:rgba(0,0,0,.36);border-top:1px solid rgba(255,255,255,.08);overflow-x:auto}
+  #task .tl{font-size:11px;color:#8b94a4;flex-shrink:0}
+  .chip{display:flex;align-items:center;gap:8px;height:38px;padding:0 12px 0 8px;border-radius:10px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid transparent;transition:.13s;flex-shrink:0}
+  .chip:hover{background:rgba(255,255,255,.12)}
+  .chip.active{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.25)}
+  .chip.mini{opacity:.55}
+  .chip .ci{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;color:#fff;letter-spacing:-.5px}
+  .chip .cn{font-size:12px;color:#e7eaf0;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
-<header>
-  <div class="topbar">
-    <div class="brand">
-      <div class="logo">M</div>
-      <div>
-        <h1>Master Hub</h1>
-        <div class="sub">Master Electronics · Sales Launchpad</div>
-      </div>
+<div id="desk">
+  <div id="bar">
+    <div class="brand"><div class="logo">M</div><div><h1>Master Hub</h1><div class="sub">Master Electronics · Workspace</div></div></div>
+    <div id="searchwrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="search" placeholder="Search apps…">
     </div>
-    <div class="clock">
-      <div class="time" id="time">--:--</div>
-      <div class="date" id="date">—</div>
-    </div>
+    <div id="clock"><span id="ctime">--:--</span><div class="d" id="cdate"></div></div>
   </div>
-  <div class="greet">
-    <h2 id="greeting">Welcome back</h2>
-    <p>Everything you need to start your day — all in one place.</p>
-  </div>
-  <div class="searchwrap">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-    <input id="search" type="text" placeholder="Search apps…  (try 'zoom', 'crm', 'data')" autocomplete="off">
-  </div>
-</header>
-
-<main id="main"></main>
-<div class="empty" id="empty">No apps match your search.</div>
-
-<footer>
-  <div class="note">
-    <b>Setup:</b> Most tiles open the app in a new tab. The MERP tile uses a <code>merp://</code> launcher for the WindX desktop client — install <code>merp-protocol-handler.reg</code> on each PC first. The Zoom unread-chat badge is live only inside the Cowork dashboard. Edit the <code>url:</code> values in the <code>APPS</code> list to change any link.
-  </div>
-</footer>
+  <div id="launch"></div>
+  <div id="task"><span class="tl">Open apps:</span></div>
+</div>
 
 <script>
-  // ===== EDIT LINKS HERE =====
-  // Replace each "url" with your real internal/login URL.
   const APPS = [
-    { cat:"Master Tools", name:"USMCA Program", desc:"In-house USMCA trade compliance tool", mono:"US", color:"#1f7a4d", url:"#REPLACE-USMCA-URL" },
-    { cat:"Master Tools", name:"Cert Program", desc:"In-house certification management tool", mono:"CP", color:"#7a4ed8", url:"#REPLACE-CERT-URL" },
-
-    { cat:"Sales & CRM", name:"HubSpot", desc:"CRM, deals, pipeline & marketing", mono:"HS", color:"#ff7a59", url:"https://app.hubspot.com/" },
-
-    { cat:"Operations & ERP", name:"MERP", desc:"Master ERP — WindX desktop client", mono:"ME", color:"#d9252b", url:"merp://launch" },
-    { cat:"Operations & ERP", name:"ServiceNow", desc:"IT tickets, requests & support", mono:"SN", color:"#62d84e", url:"https://www.service-now.com/" },
-
-    { cat:"Finance & HR", name:"SAP Concur", desc:"Expenses, travel & reimbursements", mono:"SC", color:"#0a72bb", url:"https://www.concursolutions.com/" },
-    { cat:"Finance & HR", name:"UltiPro", desc:"Payroll, benefits & HR (UKG)", mono:"UP", color:"#005151", url:"https://www.ultipro.com/" },
-
-    { cat:"Data & Analytics", name:"Power BI", desc:"Business intelligence dashboards & reports", mono:"BI", color:"#c79100", url:"https://app.powerbi.com/home?experience=power-bi" },
-    { cat:"Data & Analytics", name:"Databricks", desc:"Data lakehouse, notebooks & analytics", mono:"DB", color:"#ff3621", url:"https://www.databricks.com/login" },
-
-    { cat:"Productivity & Security", name:"Master Connector", desc:"SharePoint intranet & company hub", mono:"MC", color:"#038387", url:"https://mastersinternational.sharepoint.com/sites/MasterElectronics/" },
-    { cat:"Productivity & Security", name:"Outlook", desc:"Email & calendar", mono:"OL", color:"#0a64d6", url:"https://outlook.office.com/" },
-    { cat:"Productivity & Security", name:"Zoom", desc:"Meetings & Team Chat", mono:"ZM", color:"#2d8cff", url:"https://zoom.us/", live:"zoom" },
-    { cat:"Productivity & Security", name:"ChatGPT", desc:"AI assistant for writing & research", mono:"AI", color:"#10a37f", url:"https://chat.openai.com/" },
-    { cat:"Productivity & Security", name:"Keeper", desc:"Password manager & secure vault", mono:"KP", color:"#ffae00", url:"https://keepersecurity.com/vault/" },
+    { id:"usmca", cat:"Master Tools", name:"USMCA Program", mono:"US", color:"#1f7a4d", kind:"mock" },
+    { id:"cert",  cat:"Master Tools", name:"Cert Program",  mono:"CP", color:"#7a4ed8", kind:"mock" },
+    { id:"hubspot", cat:"Sales & CRM", name:"HubSpot", mono:"HS", color:"#ff7a59", kind:"ext", url:"https://app.hubspot.com/" },
+    { id:"merp", cat:"Operations & ERP", name:"MERP", mono:"ME", color:"#d9252b", kind:"desktop", url:"merp://launch" },
+    { id:"servicenow", cat:"Operations & ERP", name:"ServiceNow", mono:"SN", color:"#3a9d4e", kind:"ext", url:"https://www.service-now.com/" },
+    { id:"concur", cat:"Finance & HR", name:"SAP Concur", mono:"SC", color:"#0a72bb", kind:"ext", url:"https://www.concursolutions.com/" },
+    { id:"ultipro", cat:"Finance & HR", name:"UltiPro", mono:"UP", color:"#005151", kind:"ext", url:"https://www.ultipro.com/" },
+    { id:"powerbi", cat:"Data & Analytics", name:"Power BI", mono:"BI", color:"#c79100", kind:"ext", url:"https://app.powerbi.com/home?experience=power-bi" },
+    { id:"databricks", cat:"Data & Analytics", name:"Databricks", mono:"DB", color:"#ff3621", kind:"ext", url:"https://www.databricks.com/login" },
+    { id:"sharepoint", cat:"Productivity & Security", name:"Master Connector", mono:"MC", color:"#038387", kind:"ext", url:"https://mastersinternational.sharepoint.com/sites/MasterElectronics/" },
+    { id:"outlook", cat:"Productivity & Security", name:"Outlook", mono:"OL", color:"#0a64d6", kind:"ext", url:"https://outlook.office.com/" },
+    { id:"zoom", cat:"Productivity & Security", name:"Zoom", mono:"ZM", color:"#2d8cff", kind:"ext", url:"https://zoom.us/", live:"zoom" },
+    { id:"chatgpt", cat:"Productivity & Security", name:"ChatGPT", mono:"AI", color:"#10a37f", kind:"ext", url:"https://chat.openai.com/" },
+    { id:"keeper", cat:"Productivity & Security", name:"Keeper", mono:"KP", color:"#ffae00", kind:"ext", url:"https://keepersecurity.com/vault/" },
   ];
-  // ===========================
-
   const ORDER = ["Master Tools","Sales & CRM","Operations & ERP","Finance & HR","Data & Analytics","Productivity & Security"];
-  const main = document.getElementById('main');
+  const desk=document.getElementById('desk'), task=document.getElementById('task'), launch=document.getElementById('launch');
+  let z=10, W={}, BAR=54, TB=56;
 
-  function render(filter=""){
-    main.innerHTML = "";
-    const f = filter.trim().toLowerCase();
-    let shown = 0;
+  function renderLauncher(filter=""){
+    const f=filter.trim().toLowerCase();
+    launch.innerHTML="";
     ORDER.forEach(cat=>{
-      const items = APPS.filter(a=>a.cat===cat &&
-        (!f || (a.name+" "+a.desc+" "+a.cat).toLowerCase().includes(f)));
+      const items=APPS.filter(a=>a.cat===cat && (!f||(a.name+" "+a.cat).toLowerCase().includes(f)));
       if(!items.length) return;
-      const title = document.createElement('div');
-      title.className='section-title';
-      title.textContent=cat;
-      main.appendChild(title);
-      const grid=document.createElement('div');
-      grid.className='grid';
+      const lr=document.createElement('div'); lr.className='lr'; lr.textContent=cat; launch.appendChild(lr);
+      const grid=document.createElement('div'); grid.className='tiles';
       items.forEach(a=>{
-        shown++;
-        const placeholder = a.url.startsWith('#');
-        const tile=document.createElement('a');
-        tile.className='tile';
-        tile.href=a.url; tile.target='_blank'; tile.rel='noopener';
-        tile.innerHTML=`
-          <div class="tile-top">
-            <div class="ic-wrap">
-              <div class="ic" style="background:${a.color}">${a.mono}</div>
-              ${a.live?`<span class="badge" id="badge-${a.live}"></span>`:''}
-            </div>
-            <span class="arrow">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-            </span>
-          </div>
-          <div>
-            <h3>${a.name}</h3>
-            <p>${a.desc}</p>
-            ${a.live?`<div class="subnote" id="subnote-${a.live}"></div>`:''}
-          </div>
-          ${placeholder?'<span class="pill">Add link</span>':''}`;
-        grid.appendChild(tile);
+        const t=document.createElement('div'); t.className='tile';
+        t.innerHTML=`<div class="ico" style="background:${a.color}">${a.mono}</div><span>${a.name}</span>${a.live?`<span class="tbadge" id="tb-${a.live}"></span>`:''}`;
+        t.onclick=()=>openApp(a);
+        grid.appendChild(t);
       });
-      main.appendChild(grid);
+      launch.appendChild(grid);
     });
-    document.getElementById('empty').style.display = shown? 'none':'block';
-    loadZoomUnread();
+    loadZoom();
   }
 
-  // Live Zoom unread-chat indicator — only runs inside Cowork (connector access).
-  async function loadZoomUnread(){
-    if(!(window.cowork && window.cowork.callMcpTool)) return;
-    const badge = document.getElementById('badge-zoom');
-    const note  = document.getElementById('subnote-zoom');
-    if(!badge) return;
+  function content(a){
+    if(a.kind==='mock') return mock(a);
+    if(a.kind==='desktop') return `
+      <div class="ext">
+        <div class="big" style="background:${a.color}">${a.mono}</div>
+        <h2>${a.name}</h2>
+        <p>MERP runs in the WindX desktop client. Click below to launch it. (Requires the <b>merp://</b> handler installed on this PC.)</p>
+        <button class="open" data-url="${a.url}">Launch MERP (WindX)</button>
+        <div class="sm">If nothing happens, the merp:// handler isn’t installed yet.</div>
+      </div>`;
+    const extra = a.live==='zoom' ? `<div class="zlist" id="zlist"></div>` : '';
+    return `
+      <div class="ext">
+        <div class="big" style="background:${a.color}">${a.mono}</div>
+        <h2>${a.name}</h2>
+        <p>For security, ${a.name} can’t be embedded inside another page, so it opens in its own secure window — exactly like the desktop app.</p>
+        <button class="open" data-url="${a.url}">Open ${a.name} &#8599;</button>
+        ${extra}
+      </div>`;
+  }
+  function mock(a){
+    if(a.id==="usmca") return `<div class="mock"><h2>USMCA Compliance</h2><div class="ld">In-house trade-compliance tool — example working view.</div>
+      <div class="st"><div class="cd"><div class="n">128</div><div class="l">Parts qualified</div></div><div class="cd"><div class="n">14</div><div class="l">Pending review</div></div><div class="cd"><div class="n">96%</div><div class="l">Origin coverage</div></div></div>
+      <div class="row"><div class="fld"><label>Part number</label><input placeholder="e.g. ME-44820"></div><div class="fld"><label>Country of origin</label><select><option>Mexico</option><option>USA</option><option>Canada</option></select></div></div>
+      <button class="btn">Run qualification</button></div>`;
+    return `<div class="mock"><h2>Certification Manager</h2><div class="ld">In-house certification tool — example working view.</div>
+      <table class="m"><tr><th>Customer</th><th>Cert type</th><th>Status</th><th>Expires</th></tr>
+      <tr><td>Acme Mfg</td><td>ISO 9001</td><td>Active</td><td>2027-03</td></tr>
+      <tr><td>Bolt Industrial</td><td>AS9100</td><td>Renewing</td><td>2026-08</td></tr>
+      <tr><td>Crest Devices</td><td>RoHS</td><td>Active</td><td>2026-12</td></tr></table>
+      <button class="btn">New certificate</button></div>`;
+  }
+
+  function openApp(a){
+    if(W[a.id]){ restore(a.id); return; }
+    const win=document.createElement('div'); win.className='win';
+    const n=Object.keys(W).length;
+    win.style.left=(70+n*28)+'px'; win.style.top=(86+n*22)+'px'; win.style.zIndex=++z;
+    win.innerHTML=`
+      <div class="tb"><div class="ti" style="background:${a.color}">${a.mono}</div><div class="tn">${a.name}</div>
+        <div class="bt"><button class="b mn" title="Minimize">&#8211;</button><button class="b mx" title="Maximize">&#9633;</button><button class="b cl" title="Close">&times;</button></div></div>
+      <div class="bd">${content(a)}</div><div class="rs"></div>`;
+    desk.appendChild(win);
+    W[a.id]={win,app:a,min:false,max:false,prev:null};
+    addChip(a); focus(a.id);
+    win.addEventListener('mousedown',()=>focus(a.id));
+    win.querySelector('.mn').onclick=e=>{e.stopPropagation();minimize(a.id);};
+    win.querySelector('.mx').onclick=e=>{e.stopPropagation();toggleMax(a.id);};
+    win.querySelector('.cl').onclick=e=>{e.stopPropagation();closeApp(a.id);};
+    const ob=win.querySelector('.open'); if(ob) ob.onclick=()=>{ if(ob.dataset.url.startsWith('merp://')) location.href=ob.dataset.url; else window.open(ob.dataset.url,'_blank'); };
+    const tbar=win.querySelector('.tb');
+    tbar.ondblclick=()=>toggleMax(a.id);
+    dragify(win,tbar,W[a.id]);
+    resizify(win,win.querySelector('.rs'),W[a.id]);
+    if(a.live==='zoom') loadZoom();
+  }
+  function dragify(win,h,d){let sx,sy,ox,oy,dr=false;
+    h.addEventListener('mousedown',e=>{if(d.max)return;dr=true;sx=e.clientX;sy=e.clientY;ox=win.offsetLeft;oy=win.offsetTop;e.preventDefault();});
+    window.addEventListener('mousemove',e=>{if(!dr)return;win.style.left=(ox+(e.clientX-sx))+'px';win.style.top=Math.max(BAR,oy+(e.clientY-sy))+'px';});
+    window.addEventListener('mouseup',()=>dr=false);}
+  function resizify(win,h,d){let sx,sy,ow,oh,rs=false;
+    h.addEventListener('mousedown',e=>{if(d.max)return;rs=true;sx=e.clientX;sy=e.clientY;ow=win.offsetWidth;oh=win.offsetHeight;e.preventDefault();e.stopPropagation();});
+    window.addEventListener('mousemove',e=>{if(!rs)return;win.style.width=Math.max(300,ow+(e.clientX-sx))+'px';win.style.height=Math.max(200,oh+(e.clientY-sy))+'px';});
+    window.addEventListener('mouseup',()=>rs=false);}
+  function focus(id){const d=W[id];if(!d)return;d.win.style.zIndex=++z;Object.values(W).forEach(o=>o.chip.classList.remove('active'));d.chip.classList.add('active');}
+  function minimize(id){const d=W[id];d.min=true;d.win.style.display='none';d.chip.classList.add('mini');d.chip.classList.remove('active');}
+  function restore(id){const d=W[id];d.min=false;d.win.style.display='flex';d.chip.classList.remove('mini');focus(id);}
+  function toggleMax(id){const d=W[id],w=d.win;
+    if(!d.max){d.prev={left:w.style.left,top:w.style.top,width:w.style.width,height:w.style.height};
+      w.style.left='0px';w.style.top=BAR+'px';w.style.width='100%';w.style.height=(desk.clientHeight-BAR-TB)+'px';w.style.borderRadius='0';d.max=true;}
+    else{Object.assign(w.style,d.prev);w.style.borderRadius='12px';d.max=false;} focus(id);}
+  function closeApp(id){const d=W[id];d.win.remove();d.chip.remove();delete W[id];}
+  function addChip(a){const c=document.createElement('div');c.className='chip';
+    c.innerHTML=`<div class="ci" style="background:${a.color}">${a.mono}</div><span class="cn">${a.name}</span>`;
+    c.onclick=()=>{const d=W[a.id];if(!d)return;if(d.min)restore(a.id);else if(d.chip.classList.contains('active'))minimize(a.id);else focus(a.id);};
+    task.appendChild(c);W[a.id].chip=c;}
+
+  async function loadZoom(){
+    if(!(window.cowork&&window.cowork.callMcpTool))return;
+    const tb=document.getElementById('tb-zoom');
     try{
-      const r = await window.cowork.callMcpTool(
-        'mcp__174e6321-222d-401e-8708-56e655bf3761__search_zoom',
-        { page_size:100, search_entities:[{ entity_type:'chat', filters:{ unread:true } }] }
-      );
-      const payload = r.structuredContent ?? JSON.parse(r.content[0].text);
-      const count = (payload.data || []).filter(d=>d.entity_type==='chat').length;
-      if(count>0){
-        badge.textContent = count>99 ? '99+' : count;
-        badge.classList.add('show');
-        note.textContent = `${count} unread chat${count===1?'':'s'} to review`;
-        note.classList.add('show');
-      } else {
-        note.textContent = 'All chats caught up';
-        note.classList.add('show');
-      }
-    }catch(e){ /* no badge if the call fails */ }
+      const r=await window.cowork.callMcpTool('mcp__174e6321-222d-401e-8708-56e655bf3761__search_zoom',{page_size:100,search_entities:[{entity_type:'chat',filters:{unread:true}}]});
+      const p=r.structuredContent??JSON.parse(r.content[0].text);
+      const chats=(p.data||[]).filter(d=>d.entity_type==='chat');
+      if(tb&&chats.length){tb.textContent=chats.length>99?'99+':chats.length;tb.classList.add('show');}
+      const zl=document.getElementById('zlist');
+      if(zl){zl.innerHTML=chats.length?('<div style="font-size:11px;color:#6b7280;margin:4px 2px 6px;font-weight:600">UNREAD CHATS</div>'+chats.slice(0,6).map(c=>`<div class="zitem"><span class="zd"></span><span>${(c.channel_name||'Direct message')}</span></div>`).join('')):'';}
+    }catch(e){}
   }
 
-  function tick(){
-    const n=new Date();
-    let h=n.getHours();
-    const m=String(n.getMinutes()).padStart(2,'0');
-    const ap=h>=12?'PM':'AM'; const h12=((h+11)%12)+1;
-    document.getElementById('time').textContent=`${h12}:${m} ${ap}`;
-    document.getElementById('date').textContent=n.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
-    const g=h<12?'Good morning':h<18?'Good afternoon':'Good evening';
-    document.getElementById('greeting').textContent=`${g}, team`;
-  }
-
-  document.getElementById('search').addEventListener('input',e=>render(e.target.value));
-  render(); tick(); setInterval(tick,1000*20);
+  function clock(){const n=new Date();let h=n.getHours();const m=String(n.getMinutes()).padStart(2,'0');const ap=h>=12?'PM':'AM';
+    document.getElementById('ctime').textContent=`${((h+11)%12)+1}:${m} ${ap}`;
+    document.getElementById('cdate').textContent=n.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});}
+  document.getElementById('search').addEventListener('input',e=>renderLauncher(e.target.value));
+  renderLauncher(); clock(); setInterval(clock,15000);
 </script>
 </body>
 </html>

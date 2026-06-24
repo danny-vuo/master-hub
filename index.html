@@ -70,14 +70,24 @@
   }
   .tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-hover);border-color:#f0c9cb}
   .tile-top{display:flex;align-items:center;justify-content:space-between}
+  .ic-wrap{position:relative}
   .ic{
     width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;
     font-weight:800;font-size:17px;color:#fff;letter-spacing:-.5px;flex-shrink:0;
   }
+  .badge{
+    position:absolute;top:-7px;right:-7px;min-width:21px;height:21px;padding:0 6px;
+    border-radius:999px;background:var(--me-red);color:#fff;font-size:11.5px;font-weight:700;
+    display:none;align-items:center;justify-content:center;border:2px solid var(--card);
+    box-shadow:0 2px 6px rgba(217,37,43,.45);
+  }
+  .badge.show{display:flex}
   .arrow{opacity:0;transform:translateX(-4px);transition:.16s;color:var(--me-red)}
   .tile:hover .arrow{opacity:1;transform:translateX(0)}
   .tile h3{font-size:15.5px;font-weight:700}
   .tile p{font-size:12.8px;color:var(--muted);line-height:1.45}
+  .subnote{font-size:11.5px;font-weight:600;color:var(--me-red);margin-top:2px;display:none}
+  .subnote.show{display:block}
   .pill{
     font-size:10.5px;font-weight:600;color:var(--me-red);background:#fdeaea;
     padding:2px 8px;border-radius:999px;align-self:flex-start;
@@ -110,7 +120,7 @@
   </div>
   <div class="searchwrap">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-    <input id="search" type="text" placeholder="Search apps…  (try 'usmca', 'crm', 'data')" autocomplete="off">
+    <input id="search" type="text" placeholder="Search apps…  (try 'zoom', 'crm', 'data')" autocomplete="off">
   </div>
 </header>
 
@@ -119,7 +129,7 @@
 
 <footer>
   <div class="note">
-    <b>Setup:</b> Most tiles open the app in a new tab. The MERP tile uses a <code>merp://</code> launcher for the WindX desktop client — install <code>merp-protocol-handler.reg</code> on each PC first. Edit the <code>url:</code> values in the <code>APPS</code> list to change any link.
+    <b>Setup:</b> Most tiles open the app in a new tab. The MERP tile uses a <code>merp://</code> launcher for the WindX desktop client — install <code>merp-protocol-handler.reg</code> on each PC first. The Zoom unread-chat badge is live only inside the Cowork dashboard. Edit the <code>url:</code> values in the <code>APPS</code> list to change any link.
   </div>
 </footer>
 
@@ -143,6 +153,7 @@
 
     { cat:"Productivity & Security", name:"Master Connector", desc:"SharePoint intranet & company hub", mono:"MC", color:"#038387", url:"https://mastersinternational.sharepoint.com/sites/MasterElectronics/" },
     { cat:"Productivity & Security", name:"Outlook", desc:"Email & calendar", mono:"OL", color:"#0a64d6", url:"https://outlook.office.com/" },
+    { cat:"Productivity & Security", name:"Zoom", desc:"Meetings & Team Chat", mono:"ZM", color:"#2d8cff", url:"https://zoom.us/", live:"zoom" },
     { cat:"Productivity & Security", name:"ChatGPT", desc:"AI assistant for writing & research", mono:"AI", color:"#10a37f", url:"https://chat.openai.com/" },
     { cat:"Productivity & Security", name:"Keeper", desc:"Password manager & secure vault", mono:"KP", color:"#ffae00", url:"https://keepersecurity.com/vault/" },
   ];
@@ -173,7 +184,10 @@
         tile.href=a.url; tile.target='_blank'; tile.rel='noopener';
         tile.innerHTML=`
           <div class="tile-top">
-            <div class="ic" style="background:${a.color}">${a.mono}</div>
+            <div class="ic-wrap">
+              <div class="ic" style="background:${a.color}">${a.mono}</div>
+              ${a.live?`<span class="badge" id="badge-${a.live}"></span>`:''}
+            </div>
             <span class="arrow">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             </span>
@@ -181,6 +195,7 @@
           <div>
             <h3>${a.name}</h3>
             <p>${a.desc}</p>
+            ${a.live?`<div class="subnote" id="subnote-${a.live}"></div>`:''}
           </div>
           ${placeholder?'<span class="pill">Add link</span>':''}`;
         grid.appendChild(tile);
@@ -188,6 +203,32 @@
       main.appendChild(grid);
     });
     document.getElementById('empty').style.display = shown? 'none':'block';
+    loadZoomUnread();
+  }
+
+  // Live Zoom unread-chat indicator — only runs inside Cowork (connector access).
+  async function loadZoomUnread(){
+    if(!(window.cowork && window.cowork.callMcpTool)) return;
+    const badge = document.getElementById('badge-zoom');
+    const note  = document.getElementById('subnote-zoom');
+    if(!badge) return;
+    try{
+      const r = await window.cowork.callMcpTool(
+        'mcp__174e6321-222d-401e-8708-56e655bf3761__search_zoom',
+        { page_size:100, search_entities:[{ entity_type:'chat', filters:{ unread:true } }] }
+      );
+      const payload = r.structuredContent ?? JSON.parse(r.content[0].text);
+      const count = (payload.data || []).filter(d=>d.entity_type==='chat').length;
+      if(count>0){
+        badge.textContent = count>99 ? '99+' : count;
+        badge.classList.add('show');
+        note.textContent = `${count} unread chat${count===1?'':'s'} to review`;
+        note.classList.add('show');
+      } else {
+        note.textContent = 'All chats caught up';
+        note.classList.add('show');
+      }
+    }catch(e){ /* no badge if the call fails */ }
   }
 
   function tick(){

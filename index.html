@@ -84,11 +84,7 @@
   .ext .open{background:var(--red);color:#fff;border:none;padding:11px 22px;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer}
   .ext .open:hover{background:#b81f24}
   .ext .sm{font-size:11.5px;color:#9aa1ad}
-  .frame-wrap{position:relative;height:100%;background:#fff}
-  .frame{width:100%;height:100%;border:0;display:block;background:#fff}
-  .popout{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink);font-size:14px;box-shadow:0 4px 12px rgba(29,35,48,.14);z-index:4;transition:.13s}
-  .popout:hover{background:#fff;color:var(--red);border-color:#dde0e6}
-  .zlist{position:absolute;top:10px;left:10px;width:230px;max-width:60%;text-align:left;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:11px;padding:9px;box-shadow:0 8px 22px rgba(29,35,48,.14);z-index:4}
+  .zlist{margin-top:8px;width:100%;max-width:380px;text-align:left}
   .zitem{display:flex;gap:9px;padding:8px 11px;background:var(--bg);border-radius:9px;margin-bottom:6px;font-size:12px}
   .zitem .zd{width:6px;height:6px;border-radius:50%;background:var(--red);margin-top:6px;flex-shrink:0}
   #dock{position:absolute;left:50%;transform:translateX(-50%);bottom:18px;z-index:500;display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,.86);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px rgba(29,35,48,.16);max-width:90%;overflow-x:auto}
@@ -199,13 +195,11 @@
       <p>Launching MERP in the WindX desktop client now. (Requires the <b>merp://</b> handler installed on this PC.)</p>
       <button class="open" data-url="${a.url}">Relaunch MERP (WindX)</button>
       <div class="sm">If nothing happened, the merp:// handler isn’t installed yet.</div></div>`;
-    const overlay = a.live==='zoom' ? `<div class="zlist" id="zlist"></div>` : '';
+    const extra = a.live==='zoom' ? `<div class="zlist" id="zlist"></div>` : '';
     return `
-      <div class="frame-wrap">
-        <iframe class="frame" src="${a.url}" title="${a.name}" referrerpolicy="no-referrer-when-downgrade" allow="clipboard-read; clipboard-write; microphone; camera"></iframe>
-        ${overlay}
-        <a class="popout" href="${a.url}" target="_blank" rel="noopener" title="Open ${a.name} in a new tab">&#8599;</a>
-      </div>`;
+      <div class="ext"><div class="big" style="background:${a.color}">${a.mono}</div><h4>${a.name}</h4>
+      <p>${a.name} opened in a new tab — it can't be shown inside another page for security. If it didn't come to the front, click below.</p>
+      <button class="open" data-url="${a.url}">Reopen ${a.name} &#8599;</button>${extra}</div>`;
   }
   function mock(a){
     if(a.id==="usmca") return `<div class="mock"><h4>USMCA Compliance</h4><div class="ld">In-house trade-compliance tool — example working view.</div>
@@ -240,6 +234,7 @@
     const tbar=win.querySelector('.tb'); tbar.ondblclick=()=>toggleMax(a.id);
     dragify(win,tbar,W[a.id]); resizify(win,win.querySelector('.rs'),W[a.id]);
     if(a.kind==='desktop') location.href=a.url;
+    else if(a.kind==='ext') window.open(a.url,'_blank');
     if(a.live==='zoom') loadZoom();
   }
   function dragify(win,h,d){let sx,sy,ox,oy,dr=false;

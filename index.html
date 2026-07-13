@@ -77,16 +77,6 @@
   table.m{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
   table.m th{text-align:left;color:var(--muted);font-weight:600;border-bottom:1px solid #eceef1;padding:8px 6px}
   table.m td{border-bottom:1px solid #f3f4f6;padding:8px 6px}
-  .ext{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;gap:14px}
-  .ext .big{width:66px;height:66px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:23px;color:#fff}
-  .ext h4{font-size:18px;font-weight:600}
-  .ext p{color:var(--muted);font-size:13px;max-width:360px;line-height:1.55}
-  .ext .open{background:var(--red);color:#fff;border:none;padding:11px 22px;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer}
-  .ext .open:hover{background:#b81f24}
-  .ext .sm{font-size:11.5px;color:#9aa1ad}
-  .zlist{margin-top:8px;width:100%;max-width:380px;text-align:left}
-  .zitem{display:flex;gap:9px;padding:8px 11px;background:var(--bg);border-radius:9px;margin-bottom:6px;font-size:12px}
-  .zitem .zd{width:6px;height:6px;border-radius:50%;background:var(--red);margin-top:6px;flex-shrink:0}
   #dock{position:absolute;left:50%;transform:translateX(-50%);bottom:18px;z-index:500;display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,.86);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px rgba(29,35,48,.16);max-width:90%;overflow-x:auto}
   #dock .dl{font-size:11px;color:#9aa1ad;padding:0 4px;white-space:nowrap}
   .chip{display:flex;align-items:center;gap:8px;height:38px;padding:0 13px 0 8px;border-radius:11px;cursor:pointer;background:transparent;border:1px solid transparent;transition:.13s;flex-shrink:0}
@@ -190,17 +180,7 @@
   }
 
   function content(a){
-    if(a.kind==='mock') return mock(a);
-    if(a.kind==='desktop') return `
-      <div class="ext"><div class="big" style="background:${a.color}">${a.mono}</div><h4>${a.name}</h4>
-      <p>Launching MERP in the WindX desktop client now. (Requires the <b>merp://</b> handler installed on this PC.)</p>
-      <button class="open" data-url="${a.url}">Relaunch MERP (WindX)</button>
-      <div class="sm">If nothing happened, the merp:// handler isn’t installed yet.</div></div>`;
-    const extra = a.live==='zoom' ? `<div class="zlist" id="zlist"></div>` : '';
-    return `
-      <div class="ext"><div class="big" style="background:${a.color}">${a.mono}</div><h4>${a.name}</h4>
-      <p>${a.name} opened in a new tab — it can't be shown inside another page for security. If it didn't come to the front, click below.</p>
-      <button class="open" data-url="${a.url}">Reopen ${a.name} &#8599;</button>${extra}</div>`;
+    return mock(a);
   }
   function mock(a){
     if(a.id==="usmca") return `<div class="mock"><h4>USMCA Compliance</h4><div class="ld">In-house trade-compliance tool — example working view.</div>
@@ -216,6 +196,8 @@
   }
 
   function openApp(a){
+    if(a.kind==='desktop'){ location.href=a.url; return; }
+    if(a.kind==='ext'){ window.open(a.url,'_blank'); return; }
     if(W[a.id]){ restore(a.id); return; }
     const win=document.createElement('div'); win.className='win';
     const n=Object.keys(W).length;
@@ -231,12 +213,8 @@
     win.querySelector('.mn').onclick=e=>{e.stopPropagation();minimize(a.id);};
     win.querySelector('.mx').onclick=e=>{e.stopPropagation();toggleMax(a.id);};
     win.querySelector('.cl').onclick=e=>{e.stopPropagation();closeApp(a.id);};
-    const ob=win.querySelector('.open'); if(ob) ob.onclick=()=>{ if(ob.dataset.url.startsWith('merp://')) location.href=ob.dataset.url; else window.open(ob.dataset.url,'_blank'); };
     const tbar=win.querySelector('.tb'); tbar.ondblclick=()=>toggleMax(a.id);
     dragify(win,tbar,W[a.id]); resizify(win,win.querySelector('.rs'),W[a.id]);
-    if(a.kind==='desktop') location.href=a.url;
-    else if(a.kind==='ext') window.open(a.url,'_blank');
-    if(a.live==='zoom') loadZoom();
   }
   function dragify(win,h,d){let sx,sy,ox,oy,dr=false;
     h.addEventListener('mousedown',e=>{if(d.max)return;dr=true;sx=e.clientX;sy=e.clientY;ox=win.offsetLeft;oy=win.offsetTop;e.preventDefault();});
@@ -270,8 +248,6 @@
       const p=r.structuredContent??JSON.parse(r.content[0].text);
       const chats=(p.data||[]).filter(d=>d.entity_type==='chat');
       if(tb&&chats.length){tb.textContent=chats.length>99?'99+':chats.length;tb.classList.add('show');}
-      const zl=document.getElementById('zlist');
-      if(zl){zl.innerHTML=chats.length?('<div style="font-size:11px;color:#737a87;margin:4px 2px 7px;font-weight:600;letter-spacing:.4px">UNREAD CHATS</div>'+chats.slice(0,6).map(c=>`<div class="zitem"><span class="zd"></span><span>${(c.channel_name||'Direct message')}</span></div>`).join('')):'';}
     }catch(e){}
   }
 

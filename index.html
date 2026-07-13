@@ -95,6 +95,17 @@
   .upd p{font-size:12px;color:var(--muted);line-height:1.45;margin-bottom:9px}
   .upd .date{font-size:11px;color:#aab0ba}
   .updempty{font-size:12.5px;color:var(--muted);text-align:center;padding:30px 10px}
+  .railfoot{font-size:11.5px;margin-top:2px}
+  .railfoot a{color:var(--red);font-weight:600;text-decoration:none}
+  .railfoot a:hover{text-decoration:underline}
+  .spot{position:relative;border-radius:12px;overflow:hidden;margin-bottom:16px;cursor:pointer;background:var(--bg);border:1px solid var(--line)}
+  .spot-track{display:flex;transition:transform .45s ease}
+  .spot-slide{min-width:100%;flex-shrink:0}
+  .spot-slide img{width:100%;height:150px;object-fit:cover;display:block;background:#eceef1}
+  .spot-info{padding:11px 13px 8px}
+  .spot-dots{display:flex;gap:6px;justify-content:center;padding:0 0 10px}
+  .sdot{width:6px;height:6px;border-radius:50%;background:#d7dae0;cursor:pointer;transition:.15s;border:none;padding:0}
+  .sdot.active{background:var(--red);width:16px;border-radius:3px}
 </style>
 </head>
 <body>
@@ -122,7 +133,9 @@
   </main>
   <aside class="rail">
     <div class="railhead">Company Updates</div>
+    <div id="spotlight"></div>
     <div id="updates"></div>
+    <div class="railfoot"><a href="submit.html" target="_blank">+ Submit an update</a> for your department</div>
   </aside>
 </div>
 
@@ -156,9 +169,10 @@
   const DEPT_COLOR = { Marketing:"#d9252b", HR:"#0a72bb", IT:"#3a9d4e" };
   const UPDATES = [
     { dept:"Marketing", title:"Master Blaster — July 2026", desc:"This month's company newsletter from the Marketing team.", date:"Jul 13, 2026", url:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQBJoy3LymOvSbTOQaJONs2eARBJ2_IkBESx6Z2zR2M6P4s?e=XGfPfS", image:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQBJoy3LymOvSbTOQaJONs2eARBJ2_IkBESx6Z2zR2M6P4s?e=XGfPfS&download=1" },
+    { dept:"Marketing", title:"Supplier Spotlight", desc:"This week's featured supplier, from the Marketing team.", date:"Jul 13, 2026", url:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQC3eBVLusWVSKwNu2PxLWv4AYXdXvdWIn9ve02kuSFmiNQ?e=e9Zcdk", image:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQC3eBVLusWVSKwNu2PxLWv4AYXdXvdWIn9ve02kuSFmiNQ?e=e9Zcdk&download=1" },
   ];
-  const launch=document.getElementById('launch'), stage=document.getElementById('stage'), dock=document.getElementById('dock'), nav=document.getElementById('nav'), updates=document.getElementById('updates');
-  let z=10, W={};
+  const launch=document.getElementById('launch'), stage=document.getElementById('stage'), dock=document.getElementById('dock'), nav=document.getElementById('nav'), updates=document.getElementById('updates'), spotlight=document.getElementById('spotlight');
+  let z=10, W={}, spotIdx=0, spotTimer=null;
 
   ORDER.forEach(cat=>{
     const n=APPS.filter(a=>a.cat===cat).length;
@@ -167,6 +181,42 @@
     btn.onclick=()=>{ document.getElementById('search').value=''; renderLauncher(); setActive(cat); const el=document.getElementById('sec-'+slug(cat)); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); };
     nav.appendChild(btn);
   });
+  function renderSpotlight(){
+    if(!UPDATES.length){ spotlight.innerHTML=''; return; }
+    spotlight.innerHTML=`
+      <div class="spot">
+        <div class="spot-track" id="spotTrack"></div>
+        <div class="spot-info" id="spotInfo"></div>
+        <div class="spot-dots" id="spotDots"></div>
+      </div>`;
+    const track=document.getElementById('spotTrack'), dots=document.getElementById('spotDots');
+    UPDATES.forEach((u,i)=>{
+      const slide=document.createElement('div'); slide.className='spot-slide';
+      slide.innerHTML = u.image ? `<img src="${u.image}" alt="${u.title}">` : '';
+      const img=slide.querySelector('img'); if(img) img.onerror=()=>img.remove();
+      track.appendChild(slide);
+      const dot=document.createElement('button'); dot.className='sdot'; dot.setAttribute('aria-label','Show update '+(i+1));
+      dot.onclick=(e)=>{ e.stopPropagation(); goToSpot(i); resetSpotTimer(); };
+      dots.appendChild(dot);
+    });
+    document.querySelector('.spot').onclick=()=>window.open(UPDATES[spotIdx].url,'_blank');
+    document.querySelector('.spot').addEventListener('mouseenter',()=>clearInterval(spotTimer));
+    document.querySelector('.spot').addEventListener('mouseleave',resetSpotTimer);
+    goToSpot(0); resetSpotTimer();
+  }
+  function goToSpot(i){
+    spotIdx=(i+UPDATES.length)%UPDATES.length;
+    const track=document.getElementById('spotTrack'); if(track) track.style.transform=`translateX(-${spotIdx*100}%)`;
+    const u=UPDATES[spotIdx];
+    const info=document.getElementById('spotInfo');
+    if(info) info.innerHTML=`<span class="tag" style="background:${DEPT_COLOR[u.dept]||'#737a87'}">${u.dept}</span><h4>${u.title}</h4><p>${u.desc}</p>`;
+    document.querySelectorAll('.sdot').forEach((d,di)=>d.classList.toggle('active', di===spotIdx));
+  }
+  function resetSpotTimer(){
+    clearInterval(spotTimer);
+    if(UPDATES.length<2) return;
+    spotTimer=setInterval(()=>goToSpot(spotIdx+1),5000);
+  }
   function renderUpdates(){
     if(!UPDATES.length){ updates.innerHTML='<div class="updempty">No updates yet.</div>'; return; }
     updates.innerHTML='';
@@ -285,7 +335,7 @@
     document.getElementById('cdate').textContent=n.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
     document.getElementById('greet').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', team';}
   document.getElementById('search').addEventListener('input',e=>{renderLauncher(e.target.value);document.querySelectorAll('.navitem').forEach(b=>b.classList.remove('active'));});
-  renderLauncher(); renderUpdates(); clock(); setInterval(clock,15000);
+  renderLauncher(); renderSpotlight(); renderUpdates(); clock(); setInterval(clock,15000);
 </script>
 </body>
 </html>

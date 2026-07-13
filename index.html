@@ -57,6 +57,20 @@
   .sechead h2{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--navy)}
   .sechead .bar{width:4px;height:16px;border-radius:1px;background:var(--red)}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(216px,1fr));gap:14px}
+  #notepad{padding:0 28px 60px}
+  .ntbox{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px}
+  .ntinput{width:100%;min-height:70px;border:1px solid #dcdfe5;border-radius:4px;padding:10px 12px;font-size:13.5px;font-family:inherit;resize:vertical;outline:none;color:var(--ink)}
+  .ntinput:focus{border-color:var(--red)}
+  .ntrow{display:flex;align-items:center;gap:12px;margin-top:10px}
+  .ntadd{background:var(--red);color:#fff;border:none;padding:9px 18px;border-radius:2px;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;cursor:pointer}
+  .nthint{font-size:11px;color:var(--muted)}
+  .ntlist{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+  .ntitem{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:4px;padding:12px 14px;position:relative}
+  .ntitem .ts{font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.3px;margin-bottom:5px}
+  .ntitem p{font-size:13px;color:var(--ink);line-height:1.45;white-space:pre-wrap;padding-right:20px;margin:0}
+  .ntdel{position:absolute;top:10px;right:10px;background:none;border:none;color:#c3c8d1;cursor:pointer;font-size:16px;line-height:1;padding:2px}
+  .ntdel:hover{color:var(--red)}
+  .ntempty{font-size:12.5px;color:var(--muted)}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;cursor:pointer;transition:.16s;display:flex;flex-direction:column;gap:11px;position:relative}
   .card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(11,37,69,.14);border-color:var(--red)}
   .card .top{display:flex;align-items:center;justify-content:space-between}
@@ -159,6 +173,7 @@
     <div id="stage">
       <div id="launch"></div>
       <div class="empty" id="empty">No apps match your search.</div>
+      <div id="notepad"></div>
       <div id="dock"><span class="dl">No apps open</span></div>
     </div>
   </main>
@@ -204,8 +219,40 @@
     { dept:"Marketing", title:"Supplier Spotlight", desc:"This week's featured supplier, from the Marketing team.", date:"Jul 13, 2026", expires:"2026-07-27", url:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQC3eBVLusWVSKwNu2PxLWv4AYXdXvdWIn9ve02kuSFmiNQ?e=e9Zcdk", image:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQC3eBVLusWVSKwNu2PxLWv4AYXdXvdWIn9ve02kuSFmiNQ?e=e9Zcdk&download=1" },
   ];
   const ACTIVE_UPDATES = UPDATES.filter(u=>!u.expires || new Date() <= new Date(u.expires+"T23:59:59"));
-  const launch=document.getElementById('launch'), stage=document.getElementById('stage'), dock=document.getElementById('dock'), nav=document.getElementById('nav'), updates=document.getElementById('updates'), spotlight=document.getElementById('spotlight');
+  const launch=document.getElementById('launch'), stage=document.getElementById('stage'), dock=document.getElementById('dock'), nav=document.getElementById('nav'), updates=document.getElementById('updates'), spotlight=document.getElementById('spotlight'), notepad=document.getElementById('notepad');
   let z=10, W={}, spotIdx=0, spotTimer=null;
+
+  function loadNotes(){ try{ return JSON.parse(localStorage.getItem('mh_notes')||'[]'); }catch(e){ return []; } }
+  function saveNotes(n){ localStorage.setItem('mh_notes', JSON.stringify(n)); }
+  function renderNotepad(){
+    notepad.innerHTML=`
+      <div class="sec">
+        <div class="sechead"><span class="bar"></span><h2>Notepad</h2></div>
+        <div class="ntbox">
+          <textarea class="ntinput" id="ntinput" placeholder="Jot something down…"></textarea>
+          <div class="ntrow"><button class="ntadd" id="ntadd">Add Note</button><span class="nthint">Ctrl+Enter to save · saved to this browser only</span></div>
+        </div>
+        <div class="ntlist" id="ntlist"></div>
+      </div>`;
+    const notes=loadNotes(), list=document.getElementById('ntlist');
+    if(!notes.length){ list.innerHTML='<div class="ntempty">No notes yet.</div>'; }
+    else{
+      list.innerHTML='';
+      notes.slice().reverse().forEach(n=>{
+        const item=document.createElement('div'); item.className='ntitem';
+        const d=new Date(n.ts);
+        const stamp=d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' · '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+        item.innerHTML=`<button class="ntdel" aria-label="Delete note">&times;</button><div class="ts">${stamp}</div><p></p>`;
+        item.querySelector('p').textContent=n.text;
+        item.querySelector('.ntdel').onclick=()=>{ const all=loadNotes().filter(x=>x.ts!==n.ts); saveNotes(all); renderNotepad(); };
+        list.appendChild(item);
+      });
+    }
+    const input=document.getElementById('ntinput'), addBtn=document.getElementById('ntadd');
+    const add=()=>{ const text=input.value.trim(); if(!text) return; const all=loadNotes(); all.push({text, ts:Date.now()}); saveNotes(all); renderNotepad(); };
+    addBtn.onclick=add;
+    input.addEventListener('keydown', e=>{ if((e.ctrlKey||e.metaKey) && e.key==='Enter') add(); });
+  }
 
   ORDER.forEach(cat=>{
     const n=APPS.filter(a=>a.cat===cat).length;
@@ -370,7 +417,7 @@
     document.getElementById('cdate').textContent=n.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
     document.getElementById('greet').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', Daniel';}
   document.getElementById('search').addEventListener('input',e=>{renderLauncher(e.target.value);document.querySelectorAll('.navitem').forEach(b=>b.classList.remove('active'));});
-  renderLauncher(); renderSpotlight(); renderUpdates(); clock(); setInterval(clock,15000);
+  renderLauncher(); renderSpotlight(); renderUpdates(); renderNotepad(); clock(); setInterval(clock,15000);
 </script>
 </body>
 </html>

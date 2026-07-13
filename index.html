@@ -215,6 +215,7 @@
     win.querySelector('.cl').onclick=e=>{e.stopPropagation();closeApp(a.id);};
     const tbar=win.querySelector('.tb'); tbar.ondblclick=()=>toggleMax(a.id);
     dragify(win,tbar,W[a.id]); resizify(win,win.querySelector('.rs'),W[a.id]);
+    toggleMax(a.id);
   }
   function dragify(win,h,d){let sx,sy,ox,oy,dr=false;
     h.addEventListener('mousedown',e=>{if(d.max)return;dr=true;sx=e.clientX;sy=e.clientY;ox=win.offsetLeft;oy=win.offsetTop;e.preventDefault();});

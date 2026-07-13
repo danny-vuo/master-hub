@@ -368,7 +368,7 @@
   function clock(){const n=new Date();let h=n.getHours();const m=String(n.getMinutes()).padStart(2,'0');const ap=h>=12?'PM':'AM';
     document.getElementById('ctime').textContent=`${((h+11)%12)+1}:${m} ${ap}`;
     document.getElementById('cdate').textContent=n.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
-    document.getElementById('greet').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', team';}
+    document.getElementById('greet').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', Daniel';}
   document.getElementById('search').addEventListener('input',e=>{renderLauncher(e.target.value);document.querySelectorAll('.navitem').forEach(b=>b.classList.remove('active'));});
   renderLauncher(); renderSpotlight(); renderUpdates(); clock(); setInterval(clock,15000);
 </script>

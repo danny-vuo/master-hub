@@ -4,49 +4,63 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Master Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Kalam:wght@600&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-  :root{--red:#d9252b;--red-soft:#fdecec;--ink:#1d2330;--muted:#737a87;--line:#e9ebef;--bg:#f5f6f8;--surface:#fff;--charcoal:#1e2330}
+  :root{--navy:#0b2545;--navy2:#153a6b;--red:#ee4b42;--red-soft:#fdecec;--ink:#1d2330;--muted:#737a87;--line:#e9ebef;--bg:#f5f6f8;--surface:#fff;--charcoal:#1e2330}
+  .hdln{font-family:'Oswald',-apple-system,sans-serif;text-transform:uppercase;letter-spacing:.3px}
   html,body{height:100%}
   body{background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
   #app{display:flex;height:100vh;overflow:hidden}
-  aside{width:236px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 14px}
+  aside{width:236px;flex-shrink:0;background:var(--navy);border-right:1px solid var(--navy);display:flex;flex-direction:column;padding:18px 14px}
   .logo{display:flex;align-items:center;gap:11px;padding:6px 8px 18px}
-  .logo .m{width:38px;height:38px;border-radius:10px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;box-shadow:0 3px 10px rgba(217,37,43,.32)}
-  .logo h1{font-size:16px;font-weight:600;letter-spacing:-.2px}
-  .logo .s{font-size:11px;color:var(--muted);margin-top:1px}
-  .navlbl{font-size:10px;font-weight:600;letter-spacing:.9px;text-transform:uppercase;color:#9aa1ad;padding:8px 10px 6px}
+  .logo .m{width:38px;height:38px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;box-shadow:0 3px 10px rgba(238,75,66,.4)}
+  .logo h1{font-size:16px;font-weight:700;letter-spacing:.2px;color:#fff}
+  .logo .s{font-size:11px;color:#8ea3c2;margin-top:1px}
+  .navlbl{font-size:10px;font-weight:600;letter-spacing:.9px;text-transform:uppercase;color:#6f89ac;padding:8px 10px 6px}
   .nav{display:flex;flex-direction:column;gap:2px}
-  .navitem{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:9px;cursor:pointer;color:#3c4350;font-size:13.5px;font-weight:500;transition:.13s;border:none;background:none;text-align:left;width:100%;position:relative}
+  .navitem{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:7px;cursor:pointer;color:#c3d0e3;font-size:13.5px;font-weight:500;transition:.13s;border:none;background:none;text-align:left;width:100%;position:relative}
   .navitem svg{width:18px;height:18px;flex-shrink:0;opacity:.7}
-  .navitem:hover{background:#f3f4f6}
-  .navitem.active{background:var(--red-soft);color:var(--red)}
+  .navitem:hover{background:var(--navy2)}
+  .navitem.active{background:var(--red);color:#fff}
   .navitem.active svg{opacity:1}
-  .navitem .ct{margin-left:auto;font-size:11px;color:#aab0ba;font-weight:600}
-  .navitem.active .ct{color:var(--red)}
-  .side-foot{margin-top:auto;padding:12px 10px 4px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);line-height:1.5}
+  .navitem .ct{margin-left:auto;font-size:11px;color:#6f89ac;font-weight:600}
+  .navitem.active .ct{color:#fff}
+  .side-foot{margin-top:auto;padding:14px 10px 4px;border-top:1px solid var(--navy2);font-size:11px;color:#6f89ac;line-height:1.5}
+  .values{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .value{display:flex;align-items:center;gap:8px;font-size:11px;color:#c3d0e3;font-weight:500}
+  .value svg{width:15px;height:15px;flex-shrink:0;color:var(--red)}
+  .mission{border-top:1px solid var(--navy2);padding-top:12px;display:flex;align-items:flex-start;gap:8px}
+  .mission .mbadge{width:24px;height:24px;border-radius:50%;border:2px solid var(--red);color:var(--red);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;margin-top:1px}
+  .mission p{font-family:'Kalam',cursive;font-size:13px;color:#dbe4f0;line-height:1.35}
   main{flex:1;display:flex;flex-direction:column;min-width:0}
-  header{height:70px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:0 28px;background:var(--surface);border-bottom:1px solid var(--line)}
-  header .hi{font-size:18px;font-weight:600}
-  header .hd{font-size:12.5px;color:var(--muted);margin-top:1px}
+  header{height:70px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:0 28px;background:var(--navy);border-bottom:1px solid var(--navy)}
+  header .hi{font-size:18px;font-weight:700;color:#fff}
+  header .hd{font-size:12.5px;color:#8ea3c2;margin-top:1px}
   .searchwrap{position:relative;flex:1;max-width:340px;margin-left:auto}
-  #search{width:100%;padding:10px 14px 10px 38px;border:1px solid var(--line);border-radius:10px;font-size:13.5px;background:var(--bg);color:var(--ink);outline:none;transition:.15s}
-  #search:focus{background:#fff;border-color:#cfd3da;box-shadow:0 0 0 3px rgba(217,37,43,.08)}
-  .searchwrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.45}
+  #search{width:100%;padding:10px 14px 10px 38px;border:1px solid var(--navy2);border-radius:3px;font-size:13.5px;background:#0f2e56;color:#fff;outline:none;transition:.15s}
+  #search::placeholder{color:#7f97b8}
+  #search:focus{background:#0f2e56;border-color:var(--red);box-shadow:0 0 0 3px rgba(238,75,66,.2)}
+  .searchwrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.6;stroke:#fff}
   .clock{text-align:right;white-space:nowrap}
-  .clock .t{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
-  .clock .d{font-size:11.5px;color:var(--muted)}
-  #stage{flex:1;position:relative;overflow:auto}
+  .clock .t{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;color:#fff}
+  .clock .d{font-size:11.5px;color:#8ea3c2}
+  .supstrip{flex-shrink:0;display:flex;align-items:center;gap:22px;padding:9px 28px;background:var(--surface);border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap}
+  .supstrip span{font-size:10.5px;font-weight:700;letter-spacing:.6px;color:var(--muted);flex-shrink:0}
+  .supstrip b{font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;letter-spacing:.4px;color:#aab3c2;flex-shrink:0}
+  #stage{flex:1;position:relative;overflow:auto;background-image:linear-gradient(rgba(11,37,69,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(11,37,69,.05) 1px,transparent 1px);background-size:28px 28px}
   #launch{padding:26px 28px 90px}
   .sec{margin-bottom:26px}
   .sechead{display:flex;align-items:center;gap:9px;margin:0 2px 13px}
-  .sechead h2{font-size:13px;font-weight:600;letter-spacing:.2px}
-  .sechead .bar{width:3px;height:15px;border-radius:2px;background:var(--red)}
+  .sechead h2{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--navy)}
+  .sechead .bar{width:4px;height:16px;border-radius:1px;background:var(--red)}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(216px,1fr));gap:14px}
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;transition:.16s;display:flex;flex-direction:column;gap:11px;position:relative}
-  .card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(29,35,48,.10);border-color:#dde0e6}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;cursor:pointer;transition:.16s;display:flex;flex-direction:column;gap:11px;position:relative}
+  .card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(11,37,69,.14);border-color:var(--red)}
   .card .top{display:flex;align-items:center;justify-content:space-between}
-  .ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff;letter-spacing:-.5px}
+  .ico{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff;letter-spacing:-.5px}
   .card h3{font-size:15px;font-weight:600}
   .card p{font-size:12.5px;color:var(--muted);line-height:1.45}
   .go{opacity:0;transform:translateX(-4px);transition:.16s;color:var(--red)}
@@ -73,7 +87,7 @@
   .mock .row{display:flex;gap:10px;margin-bottom:12px}.mock .fld{flex:1}
   .mock label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
   .mock input,.mock select{width:100%;padding:9px 11px;border:1px solid #dcdfe5;border-radius:9px;font-size:13px}
-  .mock .btn{background:var(--red);color:#fff;border:none;padding:9px 17px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer}
+  .mock .btn{background:var(--red);color:#fff;border:none;padding:10px 20px;border-radius:2px;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;cursor:pointer}
   table.m{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
   table.m th{text-align:left;color:var(--muted);font-weight:600;border-bottom:1px solid #eceef1;padding:8px 6px}
   table.m td{border-bottom:1px solid #f3f4f6;padding:8px 6px}
@@ -86,7 +100,7 @@
   .chip .ci{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;color:#fff;letter-spacing:-.5px}
   .chip .cn{font-size:12.5px;font-weight:500;color:#3c4350;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .rail{width:300px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--line);padding:20px 18px;overflow-y:auto}
-  .railhead{font-size:13px;font-weight:600;letter-spacing:.2px;margin-bottom:14px}
+  .railhead{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--navy);margin-bottom:14px}
   .upd{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;cursor:pointer;transition:.15s}
   .upd:hover{box-shadow:0 8px 20px rgba(29,35,48,.09);border-color:#dde0e6;transform:translateY(-1px)}
   .updimg{width:100%;border-radius:8px;margin-bottom:10px;display:block;max-height:160px;object-fit:cover}
@@ -122,7 +136,15 @@
     <div class="logo"><div class="m">M</div><div><h1>Master Hub</h1><div class="s">Master Electronics</div></div></div>
     <div class="navlbl">Categories</div>
     <div class="nav" id="nav"></div>
-    <div class="side-foot">Your daily workspace.<br>Click an app to open it in a window.</div>
+    <div class="side-foot">
+      <div class="values">
+        <div class="value"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7c.3.3.5.7.5 1.1V17h7v-1.2c0-.4.2-.8.5-1.1A7 7 0 0012 2z"/></svg>We embrace visionary thinking</div>
+        <div class="value"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>We care</div>
+        <div class="value"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8l3 3-3 3M6 8l-3 3 3 3M8 12h8"/></svg>Dedicated & loyal</div>
+        <div class="value"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l4 8-4 12-4-12z"/><circle cx="12" cy="9" r="1.6"/></svg>Entrepreneurial</div>
+      </div>
+      <div class="mission"><div class="mbadge">M</div><p>To be a family that uses our collective superpowers to do significant good.</p></div>
+    </div>
   </aside>
   <main>
     <header>
@@ -133,6 +155,7 @@
       </div>
       <div class="clock"><div class="t" id="ctime">--:--</div><div class="d" id="cdate"></div></div>
     </header>
+    <div class="supstrip"><span>AUTHORIZED DISTRIBUTOR OF</span><b>SENSATA</b><b>WINCHESTER</b><b>RECOM</b><b>ADVANCED ENERGY</b><b>EATON</b><b>TE CONNECTIVITY</b></div>
     <div id="stage">
       <div id="launch"></div>
       <div class="empty" id="empty">No apps match your search.</div>

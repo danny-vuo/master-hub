@@ -122,7 +122,7 @@
     "Productivity & Security":'<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>'
   };
   const APPS = [
-    { id:"usmca", cat:"Master Tools", name:"USMCA Program", mono:"US", color:"#1f7a4d", kind:"mock", desc:"Trade-compliance tool" },
+    { id:"usmca", cat:"Master Tools", name:"USMCA Program", mono:"US", color:"#1f7a4d", kind:"ext", url:"https://master-usmca-desk-1872992871245949.aws.databricksapps.com", desc:"Trade-compliance tool" },
     { id:"cert",  cat:"Master Tools", name:"Cert Program",  mono:"CP", color:"#7a4ed8", kind:"mock", desc:"Certification management" },
     { id:"hubspot", cat:"Sales & CRM", name:"HubSpot", mono:"HS", color:"#ff7a59", kind:"ext", url:"https://app.hubspot.com/", desc:"CRM, deals & pipeline" },
     { id:"merp", cat:"Operations & ERP", name:"MERP", mono:"ME", color:"#d9252b", kind:"desktop", url:"merp://launch", desc:"ERP — WindX client" },
@@ -180,13 +180,6 @@
   }
 
   function content(a){
-    return mock(a);
-  }
-  function mock(a){
-    if(a.id==="usmca") return `<div class="mock"><h4>USMCA Compliance</h4><div class="ld">In-house trade-compliance tool — example working view.</div>
-      <div class="st"><div class="cd"><div class="n">128</div><div class="l">Parts qualified</div></div><div class="cd"><div class="n">14</div><div class="l">Pending review</div></div><div class="cd"><div class="n">96%</div><div class="l">Origin coverage</div></div></div>
-      <div class="row"><div class="fld"><label>Part number</label><input placeholder="e.g. ME-44820"></div><div class="fld"><label>Country of origin</label><select><option>Mexico</option><option>USA</option><option>Canada</option></select></div></div>
-      <button class="btn">Run qualification</button></div>`;
     return `<div class="mock"><h4>Certification Manager</h4><div class="ld">In-house certification tool — example working view.</div>
       <table class="m"><tr><th>Customer</th><th>Cert type</th><th>Status</th><th>Expires</th></tr>
       <tr><td>Acme Mfg</td><td>ISO 9001</td><td>Active</td><td>2027-03</td></tr>

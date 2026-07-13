@@ -176,9 +176,10 @@
   const ORDER = ["Master Tools","Sales & CRM","Operations & ERP","Finance & HR","Data & Analytics","Productivity & Security"];
   const DEPT_COLOR = { Marketing:"#d9252b", HR:"#0a72bb", IT:"#3a9d4e" };
   const UPDATES = [
-    { dept:"Marketing", title:"Master Blaster — July 2026", desc:"This month's company newsletter from the Marketing team.", date:"Jul 13, 2026", url:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQBJoy3LymOvSbTOQaJONs2eARBJ2_IkBESx6Z2zR2M6P4s?e=XGfPfS", image:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQBJoy3LymOvSbTOQaJONs2eARBJ2_IkBESx6Z2zR2M6P4s?e=XGfPfS&download=1" },
-    { dept:"Marketing", title:"Supplier Spotlight", desc:"This week's featured supplier, from the Marketing team.", date:"Jul 13, 2026", url:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQC3eBVLusWVSKwNu2PxLWv4AYXdXvdWIn9ve02kuSFmiNQ?e=e9Zcdk", image:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQC3eBVLusWVSKwNu2PxLWv4AYXdXvdWIn9ve02kuSFmiNQ?e=e9Zcdk&download=1" },
+    { dept:"Marketing", title:"Master Blaster — July 2026", desc:"This month's company newsletter from the Marketing team.", date:"Jul 13, 2026", expires:"2026-08-13", url:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQBJoy3LymOvSbTOQaJONs2eARBJ2_IkBESx6Z2zR2M6P4s?e=XGfPfS", image:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQBJoy3LymOvSbTOQaJONs2eARBJ2_IkBESx6Z2zR2M6P4s?e=XGfPfS&download=1" },
+    { dept:"Marketing", title:"Supplier Spotlight", desc:"This week's featured supplier, from the Marketing team.", date:"Jul 13, 2026", expires:"2026-07-27", url:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQC3eBVLusWVSKwNu2PxLWv4AYXdXvdWIn9ve02kuSFmiNQ?e=e9Zcdk", image:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQC3eBVLusWVSKwNu2PxLWv4AYXdXvdWIn9ve02kuSFmiNQ?e=e9Zcdk&download=1" },
   ];
+  const ACTIVE_UPDATES = UPDATES.filter(u=>!u.expires || new Date() <= new Date(u.expires+"T23:59:59"));
   const launch=document.getElementById('launch'), stage=document.getElementById('stage'), dock=document.getElementById('dock'), nav=document.getElementById('nav'), updates=document.getElementById('updates'), spotlight=document.getElementById('spotlight');
   let z=10, W={}, spotIdx=0, spotTimer=null;
 
@@ -190,7 +191,7 @@
     nav.appendChild(btn);
   });
   function renderSpotlight(){
-    if(!UPDATES.length){ spotlight.innerHTML=''; return; }
+    if(!ACTIVE_UPDATES.length){ spotlight.innerHTML=''; return; }
     spotlight.innerHTML=`
       <div class="spot">
         <div class="spot-track" id="spotTrack"></div>
@@ -199,7 +200,7 @@
         <div class="spot-dots" id="spotDots"></div>
       </div>`;
     const track=document.getElementById('spotTrack'), dots=document.getElementById('spotDots');
-    UPDATES.forEach((u,i)=>{
+    ACTIVE_UPDATES.forEach((u,i)=>{
       const slide=document.createElement('div'); slide.className='spot-slide';
       slide.innerHTML = `${u.image?`<img src="${u.image}" alt="${u.title}">`:''}
         <div class="spot-overlay"><span class="tag" style="background:${DEPT_COLOR[u.dept]||'#737a87'}">${u.dept}</span><h4>${u.title}</h4><p>${u.desc}</p></div>`;
@@ -212,25 +213,25 @@
     const spotEl=document.querySelector('.spot');
     spotEl.querySelector('.prev').onclick=(e)=>{ e.stopPropagation(); goToSpot(spotIdx-1); resetSpotTimer(); };
     spotEl.querySelector('.next').onclick=(e)=>{ e.stopPropagation(); goToSpot(spotIdx+1); resetSpotTimer(); };
-    spotEl.onclick=()=>window.open(UPDATES[spotIdx].url,'_blank');
+    spotEl.onclick=()=>window.open(ACTIVE_UPDATES[spotIdx].url,'_blank');
     spotEl.addEventListener('mouseenter',()=>clearInterval(spotTimer));
     spotEl.addEventListener('mouseleave',resetSpotTimer);
     goToSpot(0); resetSpotTimer();
   }
   function goToSpot(i){
-    spotIdx=(i+UPDATES.length)%UPDATES.length;
+    spotIdx=(i+ACTIVE_UPDATES.length)%ACTIVE_UPDATES.length;
     const track=document.getElementById('spotTrack'); if(track) track.style.transform=`translateX(-${spotIdx*100}%)`;
     document.querySelectorAll('.sdot').forEach((d,di)=>d.classList.toggle('active', di===spotIdx));
   }
   function resetSpotTimer(){
     clearInterval(spotTimer);
-    if(UPDATES.length<2) return;
+    if(ACTIVE_UPDATES.length<2) return;
     spotTimer=setInterval(()=>goToSpot(spotIdx+1),5000);
   }
   function renderUpdates(){
-    if(!UPDATES.length){ updates.innerHTML='<div class="updempty">No updates yet.</div>'; return; }
+    if(!ACTIVE_UPDATES.length){ updates.innerHTML='<div class="updempty">No updates yet.</div>'; return; }
     updates.innerHTML='';
-    UPDATES.forEach(u=>{
+    ACTIVE_UPDATES.forEach(u=>{
       const card=document.createElement('div'); card.className='upd';
       card.innerHTML=`
         ${u.image?`<img class="updimg" src="${u.image}" alt="${u.title}">`:''}

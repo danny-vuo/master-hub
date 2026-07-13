@@ -98,14 +98,22 @@
   .railfoot{font-size:11.5px;margin-top:2px}
   .railfoot a{color:var(--red);font-weight:600;text-decoration:none}
   .railfoot a:hover{text-decoration:underline}
-  .spot{position:relative;border-radius:12px;overflow:hidden;margin-bottom:16px;cursor:pointer;background:var(--bg);border:1px solid var(--line)}
-  .spot-track{display:flex;transition:transform .45s ease}
-  .spot-slide{min-width:100%;flex-shrink:0}
-  .spot-slide img{width:100%;height:150px;object-fit:cover;display:block;background:#eceef1}
-  .spot-info{padding:11px 13px 8px}
-  .spot-dots{display:flex;gap:6px;justify-content:center;padding:0 0 10px}
-  .sdot{width:6px;height:6px;border-radius:50%;background:#d7dae0;cursor:pointer;transition:.15s;border:none;padding:0}
-  .sdot.active{background:var(--red);width:16px;border-radius:3px}
+  .spot{position:relative;border-radius:14px;overflow:hidden;margin-bottom:18px;cursor:pointer;background:#1a1d24;box-shadow:0 10px 26px rgba(29,35,48,.16);transition:.2s}
+  .spot:hover{box-shadow:0 14px 34px rgba(29,35,48,.24);transform:translateY(-1px)}
+  .spot-track{display:flex;transition:transform .5s cubic-bezier(.4,0,.2,1)}
+  .spot-slide{min-width:100%;flex-shrink:0;position:relative;height:230px;background:#1a1d24}
+  .spot-slide img{width:100%;height:230px;object-fit:cover;display:block}
+  .spot-overlay{position:absolute;left:0;right:0;bottom:0;padding:16px 15px 14px;background:linear-gradient(to top, rgba(10,12,18,.92) 0%, rgba(10,12,18,.55) 55%, rgba(10,12,18,0) 100%)}
+  .spot-overlay .tag{margin-bottom:7px}
+  .spot-overlay h4{color:#fff;font-size:15.5px;margin-bottom:3px}
+  .spot-overlay p{color:rgba(255,255,255,.82);font-size:12px}
+  .spot-arrow{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;background:rgba(20,22,28,.45);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:.15s;z-index:2}
+  .spot:hover .spot-arrow{opacity:1}
+  .spot-arrow:hover{background:rgba(20,22,28,.7)}
+  .spot-arrow.prev{left:8px}.spot-arrow.next{right:8px}
+  .spot-dots{position:absolute;top:14px;right:14px;display:flex;gap:6px;z-index:2}
+  .sdot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.45);cursor:pointer;transition:.15s;border:none;padding:0}
+  .sdot.active{background:#fff;width:16px;border-radius:3px}
 </style>
 </head>
 <body>
@@ -186,30 +194,32 @@
     spotlight.innerHTML=`
       <div class="spot">
         <div class="spot-track" id="spotTrack"></div>
-        <div class="spot-info" id="spotInfo"></div>
+        <button class="spot-arrow prev" aria-label="Previous update">&#8249;</button>
+        <button class="spot-arrow next" aria-label="Next update">&#8250;</button>
         <div class="spot-dots" id="spotDots"></div>
       </div>`;
     const track=document.getElementById('spotTrack'), dots=document.getElementById('spotDots');
     UPDATES.forEach((u,i)=>{
       const slide=document.createElement('div'); slide.className='spot-slide';
-      slide.innerHTML = u.image ? `<img src="${u.image}" alt="${u.title}">` : '';
+      slide.innerHTML = `${u.image?`<img src="${u.image}" alt="${u.title}">`:''}
+        <div class="spot-overlay"><span class="tag" style="background:${DEPT_COLOR[u.dept]||'#737a87'}">${u.dept}</span><h4>${u.title}</h4><p>${u.desc}</p></div>`;
       const img=slide.querySelector('img'); if(img) img.onerror=()=>img.remove();
       track.appendChild(slide);
       const dot=document.createElement('button'); dot.className='sdot'; dot.setAttribute('aria-label','Show update '+(i+1));
       dot.onclick=(e)=>{ e.stopPropagation(); goToSpot(i); resetSpotTimer(); };
       dots.appendChild(dot);
     });
-    document.querySelector('.spot').onclick=()=>window.open(UPDATES[spotIdx].url,'_blank');
-    document.querySelector('.spot').addEventListener('mouseenter',()=>clearInterval(spotTimer));
-    document.querySelector('.spot').addEventListener('mouseleave',resetSpotTimer);
+    const spotEl=document.querySelector('.spot');
+    spotEl.querySelector('.prev').onclick=(e)=>{ e.stopPropagation(); goToSpot(spotIdx-1); resetSpotTimer(); };
+    spotEl.querySelector('.next').onclick=(e)=>{ e.stopPropagation(); goToSpot(spotIdx+1); resetSpotTimer(); };
+    spotEl.onclick=()=>window.open(UPDATES[spotIdx].url,'_blank');
+    spotEl.addEventListener('mouseenter',()=>clearInterval(spotTimer));
+    spotEl.addEventListener('mouseleave',resetSpotTimer);
     goToSpot(0); resetSpotTimer();
   }
   function goToSpot(i){
     spotIdx=(i+UPDATES.length)%UPDATES.length;
     const track=document.getElementById('spotTrack'); if(track) track.style.transform=`translateX(-${spotIdx*100}%)`;
-    const u=UPDATES[spotIdx];
-    const info=document.getElementById('spotInfo');
-    if(info) info.innerHTML=`<span class="tag" style="background:${DEPT_COLOR[u.dept]||'#737a87'}">${u.dept}</span><h4>${u.title}</h4><p>${u.desc}</p>`;
     document.querySelectorAll('.sdot').forEach((d,di)=>d.classList.toggle('active', di===spotIdx));
   }
   function resetSpotTimer(){

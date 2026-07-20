@@ -190,6 +190,7 @@
 
 <script>
   const ICONS = {
+    "Start Here":'<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>',
     "Master Tools":'<path d="M12 2l2.4 5.8L20 9l-4.5 3.8L17 19l-5-3-5 3 1.5-6.2L4 9l5.6-1.2z"/>',
     "Sales & CRM":'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 11a3 3 0 100-6"/><path d="M21 20c0-2.5-1.5-4.2-4-4.7"/>',
     "Operations & ERP":'<path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>',
@@ -207,7 +208,7 @@
     { id:"ultipro", cat:"Finance & HR", name:"UltiPro", mono:"UP", color:"#005151", kind:"ext", url:"https://fgwn01.ultipro.com/Ws-Fed/ProvisionUser.aspx?cpi=https%3a%2f%2fsts.windows.net%2f56f019d2-c7ea-4950-b0b2-f9cb651614bc%2f&targetsite=https%3a%2f%2fnw12.ultipro.com%2flogin.aspx", desc:"Payroll, benefits & HR" },
     { id:"powerbi", cat:"Data & Analytics", name:"Power BI", mono:"BI", color:"#c79100", kind:"ext", url:"https://app.powerbi.com/home?experience=power-bi", desc:"Dashboards & reports" },
     { id:"databricks", cat:"Data & Analytics", name:"Databricks", mono:"DB", color:"#ff3621", kind:"ext", url:"https://masterelectronics.databricks.com/", desc:"Data lakehouse & analytics" },
-    { id:"sso", cat:"Productivity & Security", name:"Company Sign-In", mono:"SSO", color:"#0078d4", kind:"ext", url:"https://myapps.microsoft.com/", desc:"Sign in / refresh SSO session" },
+    { id:"sso", cat:"Start Here", name:"Company Sign-In", mono:"SSO", color:"#0078d4", kind:"ext", url:"https://myapps.microsoft.com/", desc:"Sign in / refresh SSO session" },
     { id:"sharepoint", cat:"Productivity & Security", name:"Master Connector", mono:"MC", color:"#038387", kind:"ext", url:"https://mastersinternational.sharepoint.com/sites/MasterElectronics/", desc:"SharePoint intranet" },
     { id:"outlook", cat:"Productivity & Security", name:"Outlook", mono:"OL", color:"#0a64d6", kind:"ext", url:"https://outlook.office.com/", desc:"Email & calendar" },
     { id:"zoom", cat:"Productivity & Security", name:"Zoom", mono:"ZM", color:"#2d8cff", kind:"desktop", url:"masterzoom://launch", live:"zoom", desc:"Meetings & Team Chat" },
@@ -215,7 +216,7 @@
     { id:"keeper", cat:"Productivity & Security", name:"Keeper", mono:"KP", color:"#ffae00", kind:"ext", url:"https://keepersecurity.com/vault/", desc:"Password vault" },
     { id:"health", cat:"Productivity & Security", name:"Wellhub", mono:"WH", color:"#00b67a", kind:"ext", url:"https://www.wellhub.com/", desc:"Fitness & wellness benefit" },
   ];
-  const ORDER = ["Master Tools","Sales & CRM","Operations & ERP","Finance & HR","Data & Analytics","Productivity & Security"];
+  const ORDER = ["Start Here","Master Tools","Sales & CRM","Operations & ERP","Finance & HR","Data & Analytics","Productivity & Security"];
   const DEPT_COLOR = { Marketing:"#d9252b", HR:"#0a72bb", IT:"#3a9d4e" };
   const UPDATES = [
     { dept:"Marketing", title:"Master Blaster — July 2026", desc:"This month's company newsletter from the Marketing team.", date:"Jul 13, 2026", expires:"2026-08-13", url:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQBJoy3LymOvSbTOQaJONs2eARBJ2_IkBESx6Z2zR2M6P4s?e=XGfPfS", image:"https://mastersinternational.sharepoint.com/:u:/s/MasterElectronics/IQBJoy3LymOvSbTOQaJONs2eARBJ2_IkBESx6Z2zR2M6P4s?e=XGfPfS&download=1" },

@@ -52,13 +52,16 @@
   .supstrip b{font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;letter-spacing:.4px;color:#aab3c2;flex-shrink:0}
   #stage{flex:1;position:relative;overflow:auto;background-image:linear-gradient(rgba(11,37,69,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(11,37,69,.05) 1px,transparent 1px);background-size:28px 28px}
   #launch{display:flex;align-items:flex-start;gap:24px;padding:26px 28px 90px}
-  #applist{flex:1;min-width:0}
+  #applist{flex:1;min-width:0;max-width:960px}
   .sec{margin-bottom:26px}
   .sechead{display:flex;align-items:center;gap:9px;margin:0 2px 13px}
   .sechead h2{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--navy)}
   .sechead .bar{width:4px;height:16px;border-radius:1px;background:var(--red)}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(216px,1fr));gap:14px}
-  #notepad{width:300px;flex-shrink:0;position:sticky;top:0}
+  #notepad{position:absolute;top:26px;right:28px;width:300px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:0 10px 26px rgba(11,37,69,.12);z-index:20}
+  #notepad .sec{margin-bottom:0}
+  #notepad .sechead{cursor:grab;user-select:none}
+  #notepad.dragging{cursor:grabbing;box-shadow:0 16px 40px rgba(11,37,69,.22)}
   .ntbox{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px}
   .ntinput{width:100%;min-height:70px;border:1px solid #dcdfe5;border-radius:4px;padding:10px 12px;font-size:13.5px;font-family:inherit;resize:vertical;outline:none;color:var(--ink)}
   .ntinput:focus{border-color:var(--red)}
@@ -228,6 +231,27 @@
 
   function loadNotes(){ try{ return JSON.parse(localStorage.getItem('mh_notes')||'[]'); }catch(e){ return []; } }
   function saveNotes(n){ localStorage.setItem('mh_notes', JSON.stringify(n)); }
+
+  let ntDrag=null;
+  window.addEventListener('mousemove', e=>{
+    if(!ntDrag) return;
+    notepad.style.left=Math.max(0, ntDrag.left+(e.clientX-ntDrag.x))+'px';
+    notepad.style.top=Math.max(0, ntDrag.top+(e.clientY-ntDrag.y))+'px';
+    notepad.style.right='auto';
+  });
+  window.addEventListener('mouseup', ()=>{
+    if(!ntDrag) return;
+    ntDrag=null;
+    notepad.classList.remove('dragging');
+    localStorage.setItem('mh_notepad_pos', JSON.stringify({left:notepad.style.left, top:notepad.style.top}));
+  });
+  (function restoreNotepadPos(){
+    try{
+      const pos=JSON.parse(localStorage.getItem('mh_notepad_pos')||'null');
+      if(pos && pos.left && pos.top){ notepad.style.left=pos.left; notepad.style.top=pos.top; notepad.style.right='auto'; }
+    }catch(e){}
+  })();
+
   function renderNotepad(){
     notepad.innerHTML=`
       <div class="sec">
@@ -256,6 +280,12 @@
     const add=()=>{ const text=input.value.trim(); if(!text) return; const all=loadNotes(); all.push({text, ts:Date.now()}); saveNotes(all); renderNotepad(); };
     addBtn.onclick=add;
     input.addEventListener('keydown', e=>{ if((e.ctrlKey||e.metaKey) && e.key==='Enter') add(); });
+    const handle=notepad.querySelector('.sechead');
+    handle.onmousedown=e=>{
+      ntDrag={ x:e.clientX, y:e.clientY, left:notepad.offsetLeft, top:notepad.offsetTop };
+      notepad.classList.add('dragging');
+      e.preventDefault();
+    };
   }
 
   ORDER.forEach(cat=>{

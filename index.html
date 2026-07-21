@@ -224,6 +224,18 @@
   let userName=identity?identity.first:'';
   let userEmail=identity?`${identity.first}.${identity.last}@masterelectronics.com`.toLowerCase():'';
 
+  (function applyUrlIdentity(){
+    const params=new URLSearchParams(location.search);
+    const first=params.get('first'), last=params.get('last');
+    if(first && last){
+      identity={first,last};
+      saveIdentity(identity);
+      userName=first;
+      userEmail=`${first}.${last}@masterelectronics.com`.toLowerCase();
+      history.replaceState({}, '', location.pathname);
+    }
+  })();
+
   function showSetupModal(){
     const overlay=document.createElement('div');
     overlay.id='setupOverlay';

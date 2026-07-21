@@ -163,10 +163,6 @@
   .themeToggle .icon-moon{display:none}
   [data-theme="dark"] .themeToggle .icon-sun{display:none}
   [data-theme="dark"] .themeToggle .icon-moon{display:block}
-  .pinBtn{position:absolute;top:12px;right:12px;background:none;border:none;padding:3px;cursor:pointer;color:#c3c8d1;opacity:0;transition:.15s;line-height:0}
-  .card:hover .pinBtn{opacity:1}
-  .pinBtn.pinned{opacity:1;color:var(--red)}
-  .pinBtn svg{width:16px;height:16px;display:block}
 </style>
 </head>
 <body>
@@ -418,58 +414,28 @@
   function slug(s){return s.replace(/[^a-z]/gi,'').toLowerCase();}
   function setActive(cat){ document.querySelectorAll('.navitem').forEach(b=>b.classList.toggle('active', b.dataset.cat===cat)); }
 
-  function loadPins(){ try{ return JSON.parse(localStorage.getItem('mh_pins')||'[]'); }catch(e){ return []; } }
-  function savePins(p){ localStorage.setItem('mh_pins', JSON.stringify(p)); }
-  function togglePin(id){
-    let pins=loadPins();
-    pins = pins.includes(id) ? pins.filter(x=>x!==id) : [...pins, id];
-    savePins(pins);
-    renderLauncher(document.getElementById('search').value);
-  }
-  function loadUsage(){ try{ return JSON.parse(localStorage.getItem('mh_usage')||'{}'); }catch(e){ return {}; } }
-  function saveUsage(u){ localStorage.setItem('mh_usage', JSON.stringify(u)); }
-  function trackUsage(id){ const u=loadUsage(); u[id]=(u[id]||0)+1; saveUsage(u); }
-
-  function buildCard(a, pins){
+  function buildCard(a){
     const card=document.createElement('div'); card.className='card';
     card.innerHTML=`
       <div class="top">
         <div class="ico" style="background:${a.color}">${a.mono}</div>
         ${a.live?`<span class="tbadge" data-live="${a.live}"></span>`:`<span class="go"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>`}
       </div>
-      <div><h3>${a.name}</h3><p>${a.desc}</p></div>
-      <button class="pinBtn${pins.includes(a.id)?' pinned':''}" aria-label="Pin app" title="Pin to Quick Access">
-        <svg viewBox="0 0 24 24" fill="${pins.includes(a.id)?'currentColor':'none'}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3l-6.1 3.3 1.4-6.8L2.2 9.1l6.9-.8z"/></svg>
-      </button>`;
+      <div><h3>${a.name}</h3><p>${a.desc}</p></div>`;
     card.onclick=()=>openApp(a);
-    card.querySelector('.pinBtn').onclick=(e)=>{ e.stopPropagation(); togglePin(a.id); };
     return card;
   }
 
   function renderLauncher(filter=""){
     const f=filter.trim().toLowerCase();
     launch.innerHTML=""; let shown=0;
-    const pins=loadPins();
-    if(!f){
-      const usage=loadUsage();
-      const pinnedApps=pins.map(id=>APPS.find(a=>a.id===id)).filter(Boolean);
-      const usedSorted=Object.entries(usage).sort((x,y)=>y[1]-x[1]).map(([id])=>APPS.find(a=>a.id===id)).filter(Boolean).filter(a=>!pins.includes(a.id));
-      const quickAccess=[...pinnedApps, ...usedSorted].slice(0,6);
-      if(quickAccess.length){
-        const sec=document.createElement('div'); sec.className='sec';
-        sec.innerHTML=`<div class="sechead"><span class="bar"></span><h2>Quick Access</h2></div>`;
-        const grid=document.createElement('div'); grid.className='grid';
-        quickAccess.forEach(a=>grid.appendChild(buildCard(a,pins)));
-        sec.appendChild(grid); launch.appendChild(sec);
-      }
-    }
     ORDER.forEach(cat=>{
       const items=APPS.filter(a=>a.cat===cat && (!f||(a.name+" "+a.desc+" "+a.cat).toLowerCase().includes(f)));
       if(!items.length) return;
       const sec=document.createElement('div'); sec.className='sec'; sec.id='sec-'+slug(cat);
       sec.innerHTML=`<div class="sechead"><span class="bar"></span><h2>${cat}</h2></div>`;
       const grid=document.createElement('div'); grid.className='grid';
-      items.forEach(a=>{ shown++; grid.appendChild(buildCard(a,pins)); });
+      items.forEach(a=>{ shown++; grid.appendChild(buildCard(a)); });
       sec.appendChild(grid); launch.appendChild(sec);
     });
     document.getElementById('empty').style.display = shown? 'none':'block';
@@ -486,7 +452,6 @@
   }
 
   function openApp(a){
-    trackUsage(a.id);
     const url=a.urlFn?a.urlFn():a.url;
     if(a.kind==='desktop'){ location.href=url; return; }
     if(a.kind==='ext'){ window.open(url,'_blank'); return; }

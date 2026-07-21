@@ -146,6 +146,15 @@
   .spot-dots{position:absolute;top:14px;right:14px;display:flex;gap:6px;z-index:2}
   .sdot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.45);cursor:pointer;transition:.15s;border:none;padding:0}
   .sdot.active{background:#fff;width:16px;border-radius:3px}
+  #setupOverlay{position:fixed;inset:0;background:rgba(11,37,69,.6);display:flex;align-items:center;justify-content:center;z-index:1000}
+  .setupCard{background:var(--surface);border-radius:14px;padding:30px 32px;width:340px;box-shadow:0 24px 60px rgba(0,0,0,.32)}
+  .setupCard h2{font-size:17px;margin:16px 0 6px;color:var(--ink)}
+  .setupCard p{font-size:12.5px;color:var(--muted);margin-bottom:20px;line-height:1.5}
+  .setupCard label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-bottom:5px}
+  .setupCard input{width:100%;padding:10px 12px;border:1px solid #dcdfe5;border-radius:6px;font-size:13.5px;margin-bottom:14px;outline:none;font-family:inherit}
+  .setupCard input:focus{border-color:var(--red)}
+  .setupCard button{width:100%;background:var(--red);color:#fff;border:none;padding:11px;border-radius:6px;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;margin-top:4px}
+  .setupCard button:hover{background:#c11f24}
 </style>
 </head>
 <body>
@@ -192,16 +201,41 @@
 </div>
 
 <script>
-  function getStored(key, question){
-    let v=localStorage.getItem(key);
-    if(v===null){
-      v=(prompt(question)||'').trim();
-      localStorage.setItem(key, v);
-    }
-    return v;
+  function loadIdentity(){ try{ return JSON.parse(localStorage.getItem('mh_identity')||'null'); }catch(e){ return null; } }
+  function saveIdentity(id){ localStorage.setItem('mh_identity', JSON.stringify(id)); }
+  let identity=loadIdentity();
+  let userName=identity?identity.first:'';
+  let userEmail=identity?`${identity.first}.${identity.last}@masterelectronics.com`.toLowerCase():'';
+
+  function showSetupModal(){
+    const overlay=document.createElement('div');
+    overlay.id='setupOverlay';
+    overlay.innerHTML=`
+      <div class="setupCard">
+        <div class="logo"><div class="m">M</div><div><h1>Master Hub</h1><div class="s">Master Electronics</div></div></div>
+        <h2>Welcome — let's set up your Hub</h2>
+        <p>Enter your name so the Hub can greet you and pre-fill sign-in links like Concur with your work email.</p>
+        <label for="setupFirst">First name</label>
+        <input id="setupFirst" placeholder="Jane">
+        <label for="setupLast">Last name</label>
+        <input id="setupLast" placeholder="Smith">
+        <button id="setupGo">Get Started</button>
+      </div>`;
+    document.body.appendChild(overlay);
+    const go=()=>{
+      const first=document.getElementById('setupFirst').value.trim();
+      const last=document.getElementById('setupLast').value.trim();
+      if(!first || !last) return;
+      identity={first,last};
+      saveIdentity(identity);
+      userName=first;
+      userEmail=`${first}.${last}@masterelectronics.com`.toLowerCase();
+      overlay.remove();
+      clock();
+    };
+    document.getElementById('setupGo').onclick=go;
+    overlay.querySelectorAll('input').forEach(inp=>inp.addEventListener('keydown', e=>{ if(e.key==='Enter') go(); }));
   }
-  const userName=getStored('mh_name', "What's your first name? (used for your greeting — saved only in this browser)");
-  const userEmail=getStored('mh_email', "What's your work email? (used to pre-fill sign-in links like Concur — saved only in this browser)");
 
   const ICONS = {
     "Start Here":'<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>',
@@ -218,7 +252,7 @@
     { id:"hubspot", cat:"Sales & CRM", name:"HubSpot", mono:"HS", color:"#ff7a59", kind:"ext", url:"https://app.hubspot.com/", desc:"CRM, deals & pipeline" },
     { id:"merp", cat:"Operations & ERP", name:"MERP", mono:"ME", color:"#d9252b", kind:"desktop", url:"merp://launch", desc:"ERP — WindX client" },
     { id:"servicenow", cat:"Operations & ERP", name:"ServiceNow", mono:"SN", color:"#3a9d4e", kind:"ext", url:"https://masterelectronics.service-now.com/", desc:"IT tickets & requests" },
-    { id:"concur", cat:"Finance & HR", name:"SAP Concur", mono:"SC", color:"#0a72bb", kind:"ext", url:userEmail?`https://www.concursolutions.com/?username=${encodeURIComponent(userEmail)}`:"https://www.concursolutions.com/", desc:"Expenses & travel" },
+    { id:"concur", cat:"Finance & HR", name:"SAP Concur", mono:"SC", color:"#0a72bb", kind:"ext", urlFn:()=>userEmail?`https://www.concursolutions.com/?username=${encodeURIComponent(userEmail)}`:"https://www.concursolutions.com/", desc:"Expenses & travel" },
     { id:"ultipro", cat:"Finance & HR", name:"UltiPro", mono:"UP", color:"#005151", kind:"ext", url:"https://fgwn01.ultipro.com/Ws-Fed/ProvisionUser.aspx?cpi=https%3a%2f%2fsts.windows.net%2f56f019d2-c7ea-4950-b0b2-f9cb651614bc%2f&targetsite=https%3a%2f%2fnw12.ultipro.com%2flogin.aspx", desc:"Payroll, benefits & HR" },
     { id:"powerbi", cat:"Data & Analytics", name:"Power BI", mono:"BI", color:"#c79100", kind:"ext", url:"https://app.powerbi.com/home?experience=power-bi", desc:"Dashboards & reports" },
     { id:"databricks", cat:"Data & Analytics", name:"Databricks", mono:"DB", color:"#ff3621", kind:"ext", url:"https://masterelectronics.databricks.com/", desc:"Data lakehouse & analytics" },
@@ -401,8 +435,9 @@
   }
 
   function openApp(a){
-    if(a.kind==='desktop'){ location.href=a.url; return; }
-    if(a.kind==='ext'){ window.open(a.url,'_blank'); return; }
+    const url=a.urlFn?a.urlFn():a.url;
+    if(a.kind==='desktop'){ location.href=url; return; }
+    if(a.kind==='ext'){ window.open(url,'_blank'); return; }
     if(W[a.id]){ restore(a.id); return; }
     const win=document.createElement('div'); win.className='win';
     const n=Object.keys(W).length;
@@ -463,6 +498,7 @@
     document.getElementById('greet').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+(userName?', '+userName:', team');}
   document.getElementById('search').addEventListener('input',e=>{renderLauncher(e.target.value);document.querySelectorAll('.navitem').forEach(b=>b.classList.remove('active'));});
   renderLauncher(); renderSpotlight(); renderUpdates(); renderNotepad(); clock(); setInterval(clock,15000);
+  if(!identity) showSetupModal();
 </script>
 </body>
 </html>

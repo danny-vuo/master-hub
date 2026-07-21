@@ -216,9 +216,9 @@
         <h2>Welcome — let's set up your Hub</h2>
         <p>Enter your name so the Hub can greet you and pre-fill sign-in links like Concur with your work email.</p>
         <label for="setupFirst">First name</label>
-        <input id="setupFirst" placeholder="Jane">
+        <input id="setupFirst" placeholder="Jane" autocomplete="given-name" name="given-name">
         <label for="setupLast">Last name</label>
-        <input id="setupLast" placeholder="Smith">
+        <input id="setupLast" placeholder="Smith" autocomplete="family-name" name="family-name">
         <button id="setupGo">Get Started</button>
       </div>`;
     document.body.appendChild(overlay);

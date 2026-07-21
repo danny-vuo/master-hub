@@ -58,10 +58,12 @@
   .sechead h2{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--navy)}
   .sechead .bar{width:4px;height:16px;border-radius:1px;background:var(--red)}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(216px,1fr));gap:14px}
-  #notepad{position:absolute;top:26px;right:28px;width:300px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:0 10px 26px rgba(11,37,69,.12);z-index:20}
-  #notepad .sec{margin-bottom:0}
+  #notepad{position:absolute;top:26px;right:28px;width:300px;min-width:240px;min-height:220px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:0 10px 26px rgba(11,37,69,.12);z-index:20;display:flex;flex-direction:column}
+  #notepad .sec{margin-bottom:0;display:flex;flex-direction:column;flex:1;min-height:0}
   #notepad .sechead{cursor:grab;user-select:none}
   #notepad.dragging{cursor:grabbing;box-shadow:0 16px 40px rgba(11,37,69,.22)}
+  #notepad .ntlist{overflow-y:auto}
+  #notepad .ntrs{position:absolute;right:2px;bottom:2px;width:16px;height:16px;cursor:nwse-resize;z-index:3;background:linear-gradient(135deg,transparent 50%,#d2d6dc 50%);border-radius:0 0 10px 0}
   .ntbox{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px}
   .ntinput{width:100%;min-height:70px;border:1px solid #dcdfe5;border-radius:4px;padding:10px 12px;font-size:13.5px;font-family:inherit;resize:vertical;outline:none;color:var(--ink)}
   .ntinput:focus{border-color:var(--red)}
@@ -277,7 +279,6 @@
     { id:"zoom", cat:"Productivity & Security", name:"Zoom", mono:"ZM", color:"#2d8cff", kind:"desktop", url:"masterzoom://launch", live:"zoom", desc:"Meetings & Team Chat" },
     { id:"chatgpt", cat:"Productivity & Security", name:"ChatGPT", mono:"AI", color:"#10a37f", kind:"ext", url:"https://chat.openai.com/", desc:"AI assistant" },
     { id:"keeper", cat:"Productivity & Security", name:"Keeper", mono:"KP", color:"#ffae00", kind:"ext", url:"https://keepersecurity.com/vault/", desc:"Password vault" },
-    { id:"health", cat:"Productivity & Security", name:"Wellhub", mono:"WH", color:"#00b67a", kind:"ext", url:"https://www.wellhub.com/", desc:"Fitness & wellness benefit" },
   ];
   const ORDER = ["Start Here","Master Tools","Sales & CRM","Operations & ERP","Finance & HR","Data & Analytics","Productivity & Security"];
   const DEPT_COLOR = { Marketing:"#d9252b", HR:"#0a72bb", IT:"#3a9d4e" };
@@ -312,6 +313,24 @@
     }catch(e){}
   })();
 
+  let ntResize=null;
+  window.addEventListener('mousemove', e=>{
+    if(!ntResize) return;
+    notepad.style.width=Math.max(240, ntResize.w+(e.clientX-ntResize.x))+'px';
+    notepad.style.height=Math.max(220, ntResize.h+(e.clientY-ntResize.y))+'px';
+  });
+  window.addEventListener('mouseup', ()=>{
+    if(!ntResize) return;
+    ntResize=null;
+    localStorage.setItem('mh_notepad_size', JSON.stringify({width:notepad.style.width, height:notepad.style.height}));
+  });
+  (function restoreNotepadSize(){
+    try{
+      const size=JSON.parse(localStorage.getItem('mh_notepad_size')||'null');
+      if(size && size.width && size.height){ notepad.style.width=size.width; notepad.style.height=size.height; }
+    }catch(e){}
+  })();
+
   function renderNotepad(){
     notepad.innerHTML=`
       <div class="sec">
@@ -321,7 +340,8 @@
           <div class="ntrow"><button class="ntadd" id="ntadd">Add Note</button><span class="nthint">Ctrl+Enter to save · saved to this browser only</span></div>
         </div>
         <div class="ntlist" id="ntlist"></div>
-      </div>`;
+      </div>
+      <div class="ntrs" title="Drag to resize"></div>`;
     const notes=loadNotes(), list=document.getElementById('ntlist');
     if(!notes.length){ list.innerHTML='<div class="ntempty">No notes yet.</div>'; }
     else{
@@ -345,6 +365,12 @@
       ntDrag={ x:e.clientX, y:e.clientY, left:notepad.offsetLeft, top:notepad.offsetTop };
       notepad.classList.add('dragging');
       e.preventDefault();
+    };
+    const rsHandle=notepad.querySelector('.ntrs');
+    rsHandle.onmousedown=e=>{
+      ntResize={ x:e.clientX, y:e.clientY, w:notepad.offsetWidth, h:notepad.offsetHeight };
+      e.preventDefault();
+      e.stopPropagation();
     };
   }
 

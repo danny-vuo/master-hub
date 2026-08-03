@@ -1,4 +1,5 @@
 [
   { "id": "usmca", "cat": "Master Tools", "name": "USMCA Program", "mono": "US", "color": "#1f7a4d", "kind": "ext", "url": "https://master-usmca-desk-1872992871245949.aws.databricksapps.com", "desc": "Trade-compliance tool" },
-  { "id": "cert", "cat": "Master Tools", "name": "Cert Program", "mono": "CP", "color": "#7a4ed8", "kind": "ext", "url": "https://certviewer-1872992871245949.aws.databricksapps.com/", "desc": "Certification management" }
+  { "id": "cert", "cat": "Master Tools", "name": "Cert Program", "mono": "CP", "color": "#7a4ed8", "kind": "ext", "url": "https://certviewer-1872992871245949.aws.databricksapps.com/", "desc": "Certification management" },
+  { "id": "customer-backlog", "cat": "Master Tools", "name": "Customer Backlog Assistant", "mono": "CB", "color": "#d9762b", "kind": "ext", "url": "https://customer-backlog-assistant-1872992871245949.aws.databricksapps.com", "desc": "Customer backlog management" }
 ]

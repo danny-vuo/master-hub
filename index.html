@@ -165,6 +165,31 @@
   .themeToggle .icon-moon{display:none}
   [data-theme="dark"] .themeToggle .icon-sun{display:none}
   [data-theme="dark"] .themeToggle .icon-moon{display:block}
+  .sechead .addToolsBtn{display:flex;align-items:center;gap:5px;background:none;border:1px solid var(--line);color:var(--red);font-size:12px;font-weight:600;padding:6px 11px;border-radius:999px;cursor:pointer;transition:.13s}
+  .sechead .addToolsBtn:hover{background:var(--red-soft);border-color:rgba(217,37,43,.25)}
+  .mtEmpty{font-size:12.5px;color:var(--muted);border:1.5px dashed var(--line);border-radius:10px;padding:22px;text-align:center;max-width:420px}
+  .cardRemove{position:absolute;top:9px;right:9px;width:22px;height:22px;border-radius:50%;border:none;background:none;color:#c3c8d1;cursor:pointer;font-size:15px;line-height:1;opacity:0;transition:.13s;display:flex;align-items:center;justify-content:center}
+  .card:hover .cardRemove{opacity:1}
+  .cardRemove:hover{color:var(--red);background:var(--red-soft)}
+  #toolsModalOverlay{position:fixed;inset:0;background:rgba(11,37,69,.6);display:flex;align-items:center;justify-content:center;z-index:1000;padding:24px}
+  .toolsModalCard{background:var(--surface);border-radius:14px;padding:26px 28px;width:460px;max-width:100%;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.32)}
+  .toolsModalCard h2{font-size:16px;margin-bottom:4px;color:var(--ink)}
+  .toolsModalCard .lede{font-size:12.5px;color:var(--muted);margin-bottom:16px;line-height:1.45}
+  .toolsSearchWrap{position:relative;margin-bottom:14px;flex-shrink:0}
+  .toolsSearchWrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.5}
+  #toolsSearch{width:100%;padding:10px 12px 10px 36px;border:1px solid #dcdfe5;border-radius:9px;font-size:13.5px;font-family:inherit;outline:none;color:var(--ink);background:var(--surface)}
+  #toolsSearch:focus{border-color:var(--red)}
+  .toolsList{overflow-y:auto;display:flex;flex-direction:column;gap:8px;flex:1;min-height:80px}
+  .toolItem{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .toolItem .ico{width:34px;height:34px;font-size:12px;flex-shrink:0}
+  .toolItem .ti-txt{flex:1;min-width:0}
+  .toolItem h4{font-size:13px;font-weight:600;color:var(--ink)}
+  .toolItem p{font-size:11.5px;color:var(--muted);line-height:1.3}
+  .toolToggle{flex-shrink:0;border:1px solid var(--line);background:none;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:7px 12px;border-radius:999px;cursor:pointer;color:var(--ink)}
+  .toolToggle.added{background:var(--red);border-color:var(--red);color:#fff}
+  .toolsEmpty{font-size:12.5px;color:var(--muted);text-align:center;padding:30px 10px}
+  .toolsModalClose{margin-top:16px;width:100%;background:none;border:1px solid var(--line);color:var(--ink);padding:10px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;flex-shrink:0}
+  .toolsModalClose:hover{background:var(--bg)}
 </style>
 </head>
 <body>
@@ -276,8 +301,6 @@
     "Productivity & Security":'<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>'
   };
   const APPS = [
-    { id:"usmca", cat:"Master Tools", name:"USMCA Program", mono:"US", color:"#1f7a4d", kind:"ext", url:"https://master-usmca-desk-1872992871245949.aws.databricksapps.com", desc:"Trade-compliance tool" },
-    { id:"cert",  cat:"Master Tools", name:"Cert Program",  mono:"CP", color:"#7a4ed8", kind:"ext", url:"https://certviewer-1872992871245949.aws.databricksapps.com/", desc:"Certification management" },
     { id:"hubspot", cat:"Sales & CRM", name:"HubSpot", mono:"HS", color:"#ff7a59", kind:"ext", url:"https://app.hubspot.com/", desc:"CRM, deals & pipeline" },
     { id:"merp", cat:"Operations & ERP", name:"MERP", mono:"ME", color:"#d9252b", kind:"desktop", url:"merp://launch", desc:"ERP — WindX client" },
     { id:"servicenow", cat:"Operations & ERP", name:"ServiceNow", mono:"SN", color:"#3a9d4e", kind:"ext", url:"https://masterelectronics.service-now.com/", desc:"IT tickets & requests" },
@@ -386,14 +409,20 @@
     };
   }
 
-  ORDER.forEach((cat,catIdx)=>{
-    const n=APPS.filter(a=>a.cat===cat).length;
-    const btn=document.createElement('button'); btn.className='navitem'; btn.dataset.cat=cat;
-    btn.title=`Press ${catIdx+1}`;
-    btn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[cat]}</svg><span>${cat}</span><span class="ct">${n}</span>`;
-    btn.onclick=()=>{ document.getElementById('search').value=''; renderLauncher(); setActive(cat); const el=document.getElementById('sec-'+slug(cat)); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); };
-    nav.appendChild(btn);
-  });
+  function renderNav(){
+    const prevActive=nav.querySelector('.navitem.active');
+    const activeCat=prevActive?prevActive.dataset.cat:null;
+    nav.innerHTML='';
+    ORDER.forEach((cat,catIdx)=>{
+      const n=APPS.filter(a=>a.cat===cat).length;
+      const btn=document.createElement('button'); btn.className='navitem'; btn.dataset.cat=cat;
+      btn.title=`Press ${catIdx+1}`;
+      btn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[cat]}</svg><span>${cat}</span><span class="ct">${n}</span>`;
+      btn.onclick=()=>{ document.getElementById('search').value=''; renderLauncher(); setActive(cat); const el=document.getElementById('sec-'+slug(cat)); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); };
+      nav.appendChild(btn);
+    });
+    if(activeCat) setActive(activeCat);
+  }
   function renderSpotlight(){
     if(!ACTIVE_UPDATES.length){ spotlight.innerHTML=''; return; }
     spotlight.innerHTML=`
@@ -459,8 +488,12 @@
         <div class="ico" style="background:${a.color}">${a.mono}</div>
         ${a.live?`<span class="tbadge" data-live="${a.live}"></span>`:`<span class="go"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>`}
       </div>
-      <div><h3>${a.name}</h3><p>${a.desc}</p></div>`;
+      <div><h3>${a.name}</h3><p>${a.desc}</p></div>
+      ${a.removable?`<button class="cardRemove" title="Remove from Master Tools">&times;</button>`:''}`;
     card.onclick=()=>openApp(a);
+    if(a.removable){
+      card.querySelector('.cardRemove').onclick=(e)=>{ e.stopPropagation(); setInstalled(installedIds.filter(id=>id!==a.id)); renderLauncher(document.getElementById('search').value); };
+    }
     return card;
   }
 
@@ -469,13 +502,22 @@
     launch.innerHTML=""; let shown=0;
     ORDER.forEach(cat=>{
       const items=APPS.filter(a=>a.cat===cat && (!f||(a.name+" "+a.desc+" "+a.cat).toLowerCase().includes(f)));
-      if(!items.length) return;
+      if(!items.length && (cat!=="Master Tools" || f)) return;
       const sec=document.createElement('div'); sec.className='sec'; sec.id='sec-'+slug(cat);
-      sec.innerHTML=`<div class="sechead"><span class="bar"></span><h2>${cat}</h2></div>`;
-      const grid=document.createElement('div'); grid.className='grid';
-      items.forEach(a=>{ shown++; grid.appendChild(buildCard(a)); });
-      sec.appendChild(grid); launch.appendChild(sec);
+      sec.innerHTML=`<div class="sechead"><span class="bar"></span><h2>${cat}</h2>${cat==="Master Tools"?`<button class="addToolsBtn" id="addToolsBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Tools</button>`:''}</div>`;
+      if(items.length){
+        const grid=document.createElement('div'); grid.className='grid';
+        items.forEach(a=>{ shown++; grid.appendChild(buildCard(a)); });
+        sec.appendChild(grid);
+      } else if(cat==="Master Tools" && !f){
+        const empty=document.createElement('div'); empty.className='mtEmpty';
+        empty.textContent="You haven't added any tools yet. Click + Add Tools to browse what's available.";
+        sec.appendChild(empty);
+      }
+      launch.appendChild(sec);
     });
+    const addBtn=document.getElementById('addToolsBtn');
+    if(addBtn) addBtn.onclick=(e)=>{ e.stopPropagation(); openToolsModal(); };
     document.getElementById('empty').style.display = shown? 'none':'block';
     loadZoom();
   }
@@ -548,6 +590,66 @@
     }catch(e){}
   }
 
+  let CATALOG=[], installedIds=[];
+  function loadInstalled(){ try{ return JSON.parse(localStorage.getItem('mh_installed_tools')||'null'); }catch(e){ return null; } }
+  function setInstalled(ids){ installedIds=ids; localStorage.setItem('mh_installed_tools', JSON.stringify(ids)); syncCatalogIntoApps(); renderNav(); }
+  function syncCatalogIntoApps(){
+    for(let i=APPS.length-1;i>=0;i--){ if(APPS[i]._fromCatalog) APPS.splice(i,1); }
+    CATALOG.filter(t=>installedIds.includes(t.id)).forEach(t=>APPS.push(Object.assign({}, t, { _fromCatalog:true, removable:true })));
+  }
+  async function loadCatalog(){
+    try{
+      const res=await fetch('tools.json', {cache:'no-store'});
+      CATALOG=await res.json();
+    }catch(e){ CATALOG=[]; }
+    const saved=loadInstalled();
+    installedIds = saved!==null ? saved : CATALOG.map(t=>t.id);
+    if(saved===null) localStorage.setItem('mh_installed_tools', JSON.stringify(installedIds));
+    syncCatalogIntoApps();
+  }
+  function openToolsModal(){
+    const overlay=document.createElement('div');
+    overlay.id='toolsModalOverlay';
+    overlay.innerHTML=`
+      <div class="toolsModalCard">
+        <h2>Add Tools</h2>
+        <div class="lede">Browse everything available and add whichever tools are useful to you. Nothing here notifies anyone — it's just for your view of the Hub.</div>
+        <div class="toolsSearchWrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="toolsSearch" placeholder="Search available tools…">
+        </div>
+        <div class="toolsList" id="toolsList"></div>
+        <button class="toolsModalClose" id="toolsModalClose">Close</button>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+    document.getElementById('toolsModalClose').onclick=()=>overlay.remove();
+    function renderList(filter=""){
+      const f=filter.trim().toLowerCase();
+      const list=document.getElementById('toolsList');
+      const items=CATALOG.filter(t=>!f||(t.name+" "+t.desc).toLowerCase().includes(f));
+      if(!items.length){ list.innerHTML='<div class="toolsEmpty">No tools match your search.</div>'; return; }
+      list.innerHTML='';
+      items.forEach(t=>{
+        const added=installedIds.includes(t.id);
+        const row=document.createElement('div'); row.className='toolItem';
+        row.innerHTML=`
+          <div class="ico" style="background:${t.color}">${t.mono}</div>
+          <div class="ti-txt"><h4>${t.name}</h4><p>${t.desc}</p></div>
+          <button class="toolToggle${added?' added':''}">${added?'Added':'Add'}</button>`;
+        row.querySelector('.toolToggle').onclick=()=>{
+          const nowAdded=installedIds.includes(t.id);
+          setInstalled(nowAdded? installedIds.filter(id=>id!==t.id) : installedIds.concat([t.id]));
+          renderLauncher(document.getElementById('search').value);
+          renderList(document.getElementById('toolsSearch').value);
+        };
+        list.appendChild(row);
+      });
+    }
+    document.getElementById('toolsSearch').addEventListener('input', e=>renderList(e.target.value));
+    renderList();
+  }
+
   function clock(){const n=new Date();let h=n.getHours();const m=String(n.getMinutes()).padStart(2,'0');const ap=h>=12?'PM':'AM';
     document.getElementById('ctime').textContent=`${((h+11)%12)+1}:${m} ${ap}`;
     document.getElementById('cdate').textContent=n.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
@@ -569,8 +671,11 @@
       }
     }
   });
-  renderLauncher(); renderSpotlight(); renderUpdates(); renderNotepad(); clock(); setInterval(clock,15000);
-  if(!identity) showSetupModal();
+  (async function init(){
+    await loadCatalog();
+    renderNav(); renderLauncher(); renderSpotlight(); renderUpdates(); renderNotepad(); clock(); setInterval(clock,15000);
+    if(!identity) showSetupModal();
+  })();
 </script>
 </body>
 </html>

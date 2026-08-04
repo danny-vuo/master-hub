@@ -351,15 +351,21 @@
   function renderPulse(){
     const strip=document.getElementById('supstrip');
     if(!PULSE || !identity) return;
-    const me=normName(identity.first+' '+identity.last);
-    const rep=(PULSE.reps||[]).find(r=>normName(r.name)===me);
+    const meEmail=userEmail.toLowerCase();
+    const meName=normName(identity.first+' '+identity.last);
+    const rep=(PULSE.reps||[]).find(r=>(r.email||'').toLowerCase()===meEmail) || (PULSE.reps||[]).find(r=>normName(r.name)===meName);
     if(!rep) return;
     const fmt=n=>'$'+Number(n||0).toLocaleString();
+    let asOf='';
+    if(PULSE.generatedAt){
+      const d=new Date(PULSE.generatedAt);
+      if(!isNaN(d)) asOf=` <span style="opacity:.6;font-weight:500">· as of ${d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})}</span>`;
+    }
     const item=`<span class="pulseItem"><span class="plabel">TODAY'S BOOKINGS</span><span class="pval">${fmt(rep.todayBookings)}</span></span>`
       +`<span class="pulseItem"><span class="plabel">MTD BOOKINGS</span><span class="pval">${fmt(rep.mtdBookings)}</span></span>`
       +`<span class="pulseItem"><span class="plabel">MTD SHIPMENTS</span><span class="pval">${fmt(rep.mtdShipments)}</span></span>`;
     strip.className='supstrip pulse';
-    strip.innerHTML=`<span style="flex-shrink:0">YOUR SALES PULSE</span><div class="pulseWrap"><div class="pulseTrack">${item}${item}</div></div>`;
+    strip.innerHTML=`<span style="flex-shrink:0">YOUR SALES PULSE${asOf}</span><div class="pulseWrap"><div class="pulseTrack">${item}${item}</div></div>`;
   }
   const launch=document.getElementById('applist'), stage=document.getElementById('stage'), dock=document.getElementById('dock'), nav=document.getElementById('nav'), updates=document.getElementById('updates'), spotlight=document.getElementById('spotlight'), notepad=document.getElementById('notepad');
   let z=10, W={}, spotIdx=0, spotTimer=null;

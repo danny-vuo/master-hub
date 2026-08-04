@@ -621,8 +621,7 @@
   function restore(id){const d=W[id];d.min=false;d.win.style.display='flex';d.chip.classList.remove('mini');focus(id);}
   function toggleMax(id){const d=W[id],w=d.win;
     if(!d.max){d.prev={left:w.style.left,top:w.style.top,width:w.style.width,height:w.style.height};
-      w.style.left='0px';w.style.top='0px';w.style.width='100%';w.style.height=stage.clientHeight+'px';w.style.borderRadius='0';d.max=true;}
-    else{Object.assign(w.style,d.prev);w.style.borderRadius='14px';d.max=false;} focus(id);}
+      w.style.left='0px';w.style.top='0px';w.style.width='100%';w.style.height=stage.clientHeight+'px';w.style.borderRadius='0';d.max=false;} focus(id);}
   function closeApp(id){const d=W[id];d.win.remove();d.chip.remove();delete W[id];syncDock();}
   function addChip(a){
     if(dock.querySelector('.dl')) dock.querySelector('.dl').remove();

@@ -1,0 +1,18 @@
+{
+  "reportMonth": "August 2026",
+  "asOf": "2026-08-03",
+  "reps": [
+    { "code": "ACH", "name": "Chris Cassese", "todayBookings": 98346, "mtdBookings": 0, "mtdShipments": 26561, "mtdBacklog": 2559483 },
+    { "code": "ACR", "name": "Christian Raccuglia", "todayBookings": 66877, "mtdBookings": 0, "mtdShipments": 8134, "mtdBacklog": 3060499 },
+    { "code": "ACU", "name": "Corey Ulick", "todayBookings": 14432, "mtdBookings": 0, "mtdShipments": 5803, "mtdBacklog": 1273949 },
+    { "code": "ADV", "name": "Daniel Vuolo", "todayBookings": 1248, "mtdBookings": 0, "mtdShipments": 0, "mtdBacklog": 47657 },
+    { "code": "AOE", "name": "Ozan Ersoz", "todayBookings": 0, "mtdBookings": 0, "mtdShipments": 0, "mtdBacklog": 0 },
+    { "code": "AON", "name": "Donald Ferdinand", "todayBookings": 65764, "mtdBookings": 0, "mtdShipments": 11449, "mtdBacklog": 971286 },
+    { "code": "ARO", "name": "Rhonda Elliott", "todayBookings": 12561, "mtdBookings": 0, "mtdShipments": 1095, "mtdBacklog": 4365171 },
+    { "code": "ATH", "name": "Thomas Happel", "todayBookings": 0, "mtdBookings": 0, "mtdShipments": 0, "mtdBacklog": 0 },
+    { "code": "ATS", "name": "Scott Steiner", "todayBookings": 27058, "mtdBookings": 0, "mtdShipments": 8969, "mtdBacklog": 2544283 },
+    { "code": "AUI", "name": "Long Island - House", "todayBookings": 0, "mtdBookings": 0, "mtdShipments": 0, "mtdBacklog": 0 },
+    { "code": "AZA", "name": "Zackery Allore", "todayBookings": 52132, "mtdBookings": 0, "mtdShipments": 7450, "mtdBacklog": 586652 },
+    { "code": "UAI", "name": "Anthony Inzerillo", "todayBookings": 0, "mtdBookings": 0, "mtdShipments": 0, "mtdBacklog": 21 }
+  ]
+}

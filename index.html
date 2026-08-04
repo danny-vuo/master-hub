@@ -50,6 +50,14 @@
   .supstrip{flex-shrink:0;display:flex;align-items:center;gap:22px;padding:9px 28px;background:var(--surface);border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap}
   .supstrip span{font-size:10.5px;font-weight:700;letter-spacing:.6px;color:var(--muted);flex-shrink:0}
   .supstrip b{font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;letter-spacing:.4px;color:#aab3c2;flex-shrink:0}
+  .supstrip.pulse{overflow:hidden}
+  .pulseWrap{flex:1;overflow:hidden;position:relative;height:100%}
+  .pulseTrack{display:flex;align-items:center;height:100%;white-space:nowrap;animation:pulseScroll 14s linear infinite}
+  .supstrip.pulse:hover .pulseTrack{animation-play-state:paused}
+  .pulseItem{display:flex;align-items:center;gap:9px;padding:0 28px;flex-shrink:0}
+  .pulseItem .plabel{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--muted)}
+  .pulseItem .pval{font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:#aab3c2}
+  @keyframes pulseScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
   #stage{flex:1;position:relative;overflow:auto;background-image:linear-gradient(rgba(11,37,69,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(11,37,69,.05) 1px,transparent 1px);background-size:28px 28px}
   #launch{display:flex;align-items:flex-start;gap:24px;padding:26px 28px 90px}
   #applist{flex:1;min-width:0;max-width:960px}
@@ -221,7 +229,7 @@
       </button>
       <div class="clock"><div class="t" id="ctime">--:--</div><div class="d" id="cdate"></div></div>
     </header>
-    <div class="supstrip"><span>AUTHORIZED DISTRIBUTOR OF</span><b>SENSATA</b><b>WINCHESTER</b><b>RECOM</b><b>ADVANCED ENERGY</b><b>EATON</b><b>TE CONNECTIVITY</b></div>
+    <div class="supstrip" id="supstrip"><span>AUTHORIZED DISTRIBUTOR OF</span><b>SENSATA</b><b>WINCHESTER</b><b>RECOM</b><b>ADVANCED ENERGY</b><b>EATON</b><b>TE CONNECTIVITY</b></div>
     <div id="stage">
       <div id="launch">
         <div id="applist"></div>
@@ -286,6 +294,7 @@
       userEmail=`${first}.${last}@masterelectronics.com`.toLowerCase();
       overlay.remove();
       clock();
+      renderPulse();
     };
     document.getElementById('setupGo').onclick=go;
     overlay.querySelectorAll('input').forEach(inp=>inp.addEventListener('keydown', e=>{ if(e.key==='Enter') go(); }));
@@ -329,6 +338,28 @@
       const res=await fetch('updates.json', {cache:'no-store'});
       UPDATES=await res.json();
     }catch(e){ UPDATES=[]; }
+  }
+
+  let PULSE=null;
+  async function loadPulse(){
+    try{
+      const res=await fetch('pulse.json', {cache:'no-store'});
+      PULSE=await res.json();
+    }catch(e){ PULSE=null; }
+  }
+  function normName(s){ return (s||'').toLowerCase().replace(/[._]/g,' ').replace(/\s+/g,' ').trim(); }
+  function renderPulse(){
+    const strip=document.getElementById('supstrip');
+    if(!PULSE || !identity) return;
+    const me=normName(identity.first+' '+identity.last);
+    const rep=(PULSE.reps||[]).find(r=>normName(r.name)===me);
+    if(!rep) return;
+    const fmt=n=>'$'+Number(n||0).toLocaleString();
+    const item=`<span class="pulseItem"><span class="plabel">TODAY'S BOOKINGS</span><span class="pval">${fmt(rep.todayBookings)}</span></span>`
+      +`<span class="pulseItem"><span class="plabel">MTD BOOKINGS</span><span class="pval">${fmt(rep.mtdBookings)}</span></span>`
+      +`<span class="pulseItem"><span class="plabel">MTD SHIPMENTS</span><span class="pval">${fmt(rep.mtdShipments)}</span></span>`;
+    strip.className='supstrip pulse';
+    strip.innerHTML=`<span style="flex-shrink:0">YOUR SALES PULSE</span><div class="pulseWrap"><div class="pulseTrack">${item}${item}</div></div>`;
   }
   const launch=document.getElementById('applist'), stage=document.getElementById('stage'), dock=document.getElementById('dock'), nav=document.getElementById('nav'), updates=document.getElementById('updates'), spotlight=document.getElementById('spotlight'), notepad=document.getElementById('notepad');
   let z=10, W={}, spotIdx=0, spotTimer=null;
@@ -684,8 +715,8 @@
     }
   });
   (async function init(){
-    await Promise.all([loadCatalog(), loadUpdates()]);
-    renderNav(); renderLauncher(); renderSpotlight(); renderUpdates(); renderNotepad(); clock(); setInterval(clock,15000);
+    await Promise.all([loadCatalog(), loadUpdates(), loadPulse()]);
+    renderNav(); renderLauncher(); renderSpotlight(); renderUpdates(); renderNotepad(); renderPulse(); clock(); setInterval(clock,15000);
     if(!identity) showSetupModal();
   })();
 </script>

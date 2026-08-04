@@ -353,7 +353,12 @@
     if(!PULSE || !identity) return;
     const meEmail=userEmail.toLowerCase();
     const meName=normName(identity.first+' '+identity.last);
-    const rep=(PULSE.reps||[]).find(r=>(r.email||'').toLowerCase()===meEmail) || (PULSE.reps||[]).find(r=>normName(r.name)===meName);
+    const meLast=normName(identity.last);
+    let rep=(PULSE.reps||[]).find(r=>(r.email||'').toLowerCase()===meEmail) || (PULSE.reps||[]).find(r=>normName(r.name)===meName);
+    if(!rep && meLast){
+      const lastMatches=(PULSE.reps||[]).filter(r=>normName(r.name).split(' ').pop()===meLast);
+      if(lastMatches.length===1) rep=lastMatches[0];
+    }
     if(!rep) return;
     const fmt=n=>'$'+Number(n||0).toLocaleString();
     let asOf='';

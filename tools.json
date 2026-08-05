@@ -1,4 +1,1 @@
-[
-  { "id": "usmca", "cat": "Master Tools", "name": "USMCA Program", "mono": "US", "color": "#1f7a4d", "kind": "ext", "url": "https://master-usmca-desk-1872992871245949.aws.databricksapps.com", "desc": "Trade-compliance tool" },
-  { "id": "cert", "cat": "Master Tools", "name": "Cert Program", "mono": "CP", "color": "#7a4ed8", "kind": "ext", "url": "https://certviewer-1872992871245949.aws.databricksapps.com/", "desc": "Certification management" }
-]
+PLACEHOLDER

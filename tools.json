@@ -1,1 +1,7 @@
-PLACEHOLDER
+[
+  { "id": "usmca", "cat": "Master Tools", "name": "USMCA Program", "mono": "US", "color": "#1f7a4d", "kind": "ext", "url": "https://master-usmca-desk-1872992871245949.aws.databricksapps.com", "desc": "Trade-compliance tool" },
+  { "id": "cert", "cat": "Master Tools", "name": "Cert Program", "mono": "CP", "color": "#7a4ed8", "kind": "ext", "url": "https://certviewer-1872992871245949.aws.databricksapps.com/", "desc": "Certification management" },
+  { "id": "customer-backlog", "cat": "Master Tools", "name": "Customer Backlog Assistant", "mono": "CB", "color": "#d9762b", "kind": "ext", "url": "https://customer-backlog-assistant-1872992871245949.aws.databricksapps.com", "desc": "Customer backlog management" },
+  { "id": "datecode-viewer", "cat": "Master Tools", "name": "Datecode Viewer", "mono": "DV", "color": "#2f8f8f", "kind": "ext", "url": "https://dcf-live-1872992871245949.aws.databricksapps.com/", "desc": "Datecode lookup tool" },
+  { "id": "cert-viewer-local", "cat": "Master Tools", "name": "Cert Viewer Local", "mono": "CL", "color": "#8a4b6b", "kind": "ext", "url": "http://127.0.0.1:5050", "desc": "Local only — works on your machine only" }
+]

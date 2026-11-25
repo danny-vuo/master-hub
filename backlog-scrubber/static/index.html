@@ -16,6 +16,13 @@ button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);font-size:13px}
 th{color:var(--mute);font-weight:600;position:sticky;top:0;background:var(--card)}td.n{text-align:right;font-variant-numeric:tabular-nums}
 tr.both td{background:var(--hit)}.wrap{overflow:auto;max-height:55vh}.mute{color:var(--mute)}.err{color:#c0392b}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;border-left:4px solid var(--c,var(--acc))}
+.tile b{display:block;font-size:24px;line-height:1.1}.tile span{font-size:12px;color:var(--mute)}
+.chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;color:var(--cc);background:var(--cb)}
+.chip.s-In{--cc:#1f7a4d;--cb:#e3f4ea}.chip.s-On{--cc:#9a5b00;--cb:#fff1d6}.chip.s-Needs{--cc:#b42318;--cb:#fde4e1}
+@media(prefers-color-scheme:dark){.chip.s-In{--cc:#6fd3a0;--cb:#173a2a}.chip.s-On{--cc:#f5c26b;--cb:#3d2f12}.chip.s-Needs{--cc:#ff9b91;--cb:#40191a}}
+header{display:flex;align-items:center;gap:10px}header:before{content:"BS";background:var(--acc);color:#fff;font-weight:700;border-radius:8px;padding:5px 8px;font-size:13px}
 h2{margin:0 0 8px;font-size:15px}.hint{font-size:12px;color:var(--mute);margin-top:8px}
 </style></head><body>
 <header><h1>Backlog Scrubber</h1></header>
@@ -54,7 +61,7 @@ async function init(){
 function table(title,rows,other){
   const cols=title==="Discontinued below screen"?ALLCOLS.filter(c=>c[0]!=="supply_status"):ALLCOLS;
   const key=r=>r.control_number+"|"+r.line_number;
-  const body=rows.map(r=>`<tr class="${other.has(key(r))?"both":""}">`+cols.map(([k,,c])=>`<td class="${c||""}">${esc(r[k]||"")}${k=="reason"&&other.has(key(r))?" <b>(also on the other scrub)</b>":""}</td>`).join("")+"</tr>").join("");
+  const body=rows.map(r=>`<tr class="${other.has(key(r))?"both":""}">`+cols.map(([k,,c])=>`<td class="${c||""}">${k=="supply_status"&&r[k]?`<span class="chip s-${esc(r[k].split(" ")[0])}">${esc(r[k])}</span>`:esc(r[k]||"")}${k=="reason"&&other.has(key(r))?" <b>(also on the other scrub)</b>":""}</td>`).join("")+"</tr>").join("");
   return `<div class="card"><div class="row" style="justify-content:space-between"><h2>${title} <span class="mute">(${rows.length} lines)</span></h2>
   <button class="ghost" onclick='dl(${JSON.stringify(title)})'>Download CSV</button></div>
   <div class="wrap"><table><thead><tr>${cols.map(c=>`<th class="${c[2]||""}">${c[1]}</th>`).join("")}</tr></thead><tbody>${body||'<tr><td colspan="${cols.length}" class="mute">Nothing to scrub.</td></tr>'}</tbody></table></div></div>`;
@@ -71,7 +78,10 @@ $("go").onclick=async()=>{
     if(!r.ok)throw new Error(await r.text()); const d=await r.json();
     const k=x=>new Set((x||[]).map(r=>r.control_number+"|"+r.line_number));
     const T1="Discontinued below screen",T2="Low GP no source note"; data[T1]=d.discontinued;data[T2]=d.low_gp;
-    $("out").innerHTML=(d.discontinued?table(T1,d.discontinued,k(d.low_gp)):"")+(d.low_gp?table(T2,d.low_gp,k(d.discontinued)):"");
+    const cnt=s=>(d.low_gp||[]).filter(r=>r.supply_status===s).length;
+    const tile=(n,l,c)=>`<div class="tile" style="--c:${c}"><b>${n}</b><span>${l}</span></div>`;
+    const tiles='<div class="tiles">'+(d.discontinued?tile(d.discontinued.length,"Discontinued below screen","#d9762b"):"")+(d.low_gp?tile(d.low_gp.length,"Low GP, no source note","#667085")+tile(cnt("In stock"),"In stock","#1f7a4d")+tile(cnt("On order"),"On order","#c98a14")+tile(cnt("Needs ordering"),"Needs ordering","#b42318"):"")+"</div>";
+    $("out").innerHTML=tiles+(d.discontinued?table(T1,d.discontinued,k(d.low_gp)):"")+(d.low_gp?table(T2,d.low_gp,k(d.discontinued)):"");
     $("msg").textContent="";
   }catch(e){$("msg").textContent="Scrub failed: "+e.message;$("msg").className="hint err"}
 };

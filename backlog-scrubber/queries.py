@@ -9,8 +9,35 @@ FILTER = """
 
 # Scrub 1 - discontinued parts Master has in stock, where line resale < screen resale.
 # Screen resale = price tier whose qty break fits the open qty (falls back to price_1).
+
+# Open Special Quotes (QQ, quoted_price) and open Ship & Debit (SD, ship_debit_authorizations): status 'O' only.
+# Shown as a note to check; they are not matched to the order.
+OPEN_CTES = """
+oq AS (
+  SELECT product_code, part_number, count(*) AS n, min(cost) AS mc, min_by(quantity, cost) AS mq,
+         max(expiry_date) AS me, collect_set(customer_code) AS cs
+  FROM me_prod.gold_products.quoted_price WHERE quote_status = 'O' GROUP BY product_code, part_number
+),
+osd AS (
+  SELECT product_code, part_number, count(*) AS n, min(cost) AS mc, min_by(quantity, cost) AS mq,
+         max(expiration_date) AS me, collect_set(customer_code) AS cs
+  FROM me_prod.gold_products.ship_debit_authorizations WHERE authorization_status = 'O' GROUP BY product_code, part_number
+),
+"""
+_part = lambda a, label: (
+    "CASE WHEN {a}.n IS NULL THEN NULL ELSE concat('{l}: ', {a}.n, ' open (', "
+    "CASE WHEN {a}.n > 1 THEN 'lowest ' ELSE '' END, '$', round({a}.mc, 4), ' for ', cast({a}.mq AS bigint), "
+    "' pcs, ends ', date_format({a}.me, 'M/d/yyyy'), "
+    "CASE WHEN array_contains({a}.cs, b.customer_code) THEN ', includes this customer' ELSE '' END, ')') END"
+).format(a=a, l=label)
+OPEN_EXPR = "concat_ws(' | ', " + _part("oq", "QQ") + ", " + _part("osd", "SD") + ")"
+OPEN_JOINS = """
+  LEFT JOIN oq ON oq.product_code = b.product_code AND oq.part_number = b.part_number
+  LEFT JOIN osd ON osd.product_code = b.product_code AND osd.part_number = b.part_number
+"""
+
 DISCONTINUED = """
-WITH stock AS (
+WITH """ + OPEN_CTES + """ stock AS (
   SELECT product_code, part_number, sum(quantity_on_hand) AS on_hand
   FROM me_prod.gold_products.inventory
   GROUP BY product_code, part_number
@@ -30,7 +57,7 @@ tiers AS (
 j AS (
   SELECT b.control_number, b.line_number, b.customer_code, c.bt_customer_name AS customer_name,
          b.part_number, b.open_quantity AS quantity, b.unit_resale AS resale, coalesce(b.line_entry_date, b.order_date) AS order_entry_date,
-         i.location_code AS branch, s.on_hand,
+         i.location_code AS branch, """ + OPEN_EXPR + """ AS open_sd_qq, s.on_hand,
          coalesce(element_at(sort_array(filter(t.t, x -> x.q <= b.open_quantity)), -1).p, t.price_1) AS screen_resale
   FROM me_prod.gold_sales.backlog_detail b
   JOIN me_prod.gold_products.master_product m
@@ -38,13 +65,13 @@ j AS (
   JOIN stock s ON s.product_code = b.product_code AND s.part_number = b.part_number
   LEFT JOIN tiers t ON t.product_code = b.product_code AND t.part_number = b.part_number
   LEFT JOIN me_prod.gold_customers.customer_profile c ON c.customer_code = b.customer_code
-  LEFT JOIN me_prod.gold_sales.lkp_isr i ON i.isr = b.isr
+  LEFT JOIN me_prod.gold_sales.lkp_isr i ON i.isr = b.isr""" + OPEN_JOINS + """
   WHERE array_contains(split(:codes, ','), m.inventory_status_code)
     AND b.open_quantity > 0
 """ + FILTER + """
 )
 SELECT control_number, line_number, customer_code, customer_name, branch, part_number, quantity, resale,
-       round(quantity * resale, 2) AS extended_resale, order_entry_date,
+       round(quantity * resale, 2) AS extended_resale, order_entry_date, open_sd_qq,
        concat('Discontinued, ', cast(on_hand AS int), ' in stock; resale $', round(resale, 4),
               ' is below screen $', round(screen_resale, 4)) AS reason
 FROM j
@@ -62,7 +89,7 @@ ORDER BY control_number, line_number
 # Or on each line alone (:judge = 'line').
 # Supply status at the shipping warehouse: In stock / On order / Needs ordering (:statuses is a list).
 LOW_GP = """
-WITH sc AS (
+WITH """ + OPEN_CTES + """ sc AS (
   SELECT DISTINCT b.control_number
   FROM me_prod.gold_sales.backlog_detail b
   LEFT JOIN me_prod.gold_sales.lkp_isr i ON i.isr = b.isr
@@ -111,6 +138,7 @@ base0 AS (
   SELECT b.control_number, b.product_code AS pc, b.line_number, b.customer_code, c.bt_customer_name AS customer_name,
          b.isr, i.location_code AS br, b.part_number, b.open_quantity AS quantity, b.unit_resale AS resale,
          coalesce(b.line_entry_date, b.order_date) AS order_entry_date, b.location_code AS loc, ot.tq, coalesce(n.has_note, 0) AS nn, b.ship_debit_cost AS sdc, b.unit_cost AS lc,
+         """ + OPEN_EXPR + """ AS open_sd_qq,
          coalesce(element_at(sort_array(filter(rc.t, x -> x.q <= ot.tq)), -1), element_at(sort_array(rc.t), 1)) AS brk,
          coalesce(s.on_hand, 0) AS oh, coalesce(s.on_order, 0) AS oo,
          CASE WHEN coalesce(s.on_hand, 0) >= b.open_quantity THEN 'In stock'
@@ -124,7 +152,7 @@ base0 AS (
   LEFT JOIN rc ON rc.product_code = b.product_code AND rc.part_number = b.part_number
   LEFT JOIN ot ON ot.control_number = b.control_number AND ot.part_number = b.part_number
   LEFT JOIN me_prod.gold_customers.customer_profile c ON c.customer_code = b.customer_code
-  LEFT JOIN me_prod.gold_sales.lkp_isr i ON i.isr = b.isr
+  LEFT JOIN me_prod.gold_sales.lkp_isr i ON i.isr = b.isr""" + OPEN_JOINS + """
   WHERE b.open_quantity > 0 AND b.unit_resale > 0
 ),
 base1 AS (
@@ -146,7 +174,7 @@ base AS (
   FROM base2
 )
 SELECT control_number, line_number, customer_code, customer_name, br AS branch, part_number, quantity, resale,
-       round(quantity * resale, 2) AS extended_resale, order_entry_date,
+       round(quantity * resale, 2) AS extended_resale, order_entry_date, open_sd_qq,
        supply_status, round(cost, 4) AS cost, round(line_gp, 1) AS line_gp, round(item_gp, 1) AS item_gp,
        concat(CASE WHEN :judge = 'line' THEN concat('Line GP ', round(line_gp, 1), '% (item ', round(item_gp, 1), '%)')
                    ELSE concat('Item GP ', round(item_gp, 1), '% (line ', round(line_gp, 1), '%)') END,

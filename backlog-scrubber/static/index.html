@@ -31,6 +31,11 @@ h2{margin:0 0 8px;font-size:15px}.hint{font-size:12px;color:var(--mute);margin-t
     <label class="chk"><input type="checkbox" id="s2" checked> Low GP (&lt;15%), non-IW/GT, no source note, stock short</label>
     <button id="go">Run scrub</button>
   </div>
+  <div class="row" style="margin-top:8px"><span class="mute">Low GP supply status:</span>
+    <label class="chk"><input type="checkbox" class="st" value="In stock"> In stock</label>
+    <label class="chk"><input type="checkbox" class="st" value="On order" checked> On order</label>
+    <label class="chk"><input type="checkbox" class="st" value="Needs ordering" checked> Needs ordering (short, and not enough on order)</label>
+  </div>
   <div class="hint">Pick an ISR or a branch (or neither for everything). The two scrubs run independently; a line that hits both shows in both and is highlighted.</div>
   <div id="msg" class="hint"></div>
 </div>
@@ -38,7 +43,7 @@ h2{margin:0 0 8px;font-size:15px}.hint{font-size:12px;color:var(--mute);margin-t
 </main>
 <script>
 const $=id=>document.getElementById(id);
-const cols=[["control_number","Control #"],["customer_code","Customer #"],["customer_name","Customer"],["part_number","Part #"],["quantity","Qty","n"],["resale","Resale","n"],["reason","Why pulled"]];
+const ALLCOLS=[["control_number","Control #"],["customer_code","Customer #"],["customer_name","Customer"],["part_number","Part #"],["quantity","Qty","n"],["resale","Resale","n"],["supply_status","Supply"],["reason","Why pulled"]];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let isrs=[];
 async function init(){
@@ -47,21 +52,22 @@ async function init(){
   $("branch").innerHTML+=m.branches.map(b=>`<option value="${esc(b[0])}">${esc(b[0])} - ${esc(b[1])}</option>`).join("");
 }
 function table(title,rows,other){
+  const cols=title==="Discontinued below screen"?ALLCOLS.filter(c=>c[0]!=="supply_status"):ALLCOLS;
   const key=r=>r.control_number+"|"+r.line_number;
   const body=rows.map(r=>`<tr class="${other.has(key(r))?"both":""}">`+cols.map(([k,,c])=>`<td class="${c||""}">${esc(r[k]||"")}${k=="reason"&&other.has(key(r))?" <b>(also on the other scrub)</b>":""}</td>`).join("")+"</tr>").join("");
   return `<div class="card"><div class="row" style="justify-content:space-between"><h2>${title} <span class="mute">(${rows.length} lines)</span></h2>
   <button class="ghost" onclick='dl(${JSON.stringify(title)})'>Download CSV</button></div>
-  <div class="wrap"><table><thead><tr>${cols.map(c=>`<th class="${c[2]||""}">${c[1]}</th>`).join("")}</tr></thead><tbody>${body||'<tr><td colspan="7" class="mute">Nothing to scrub.</td></tr>'}</tbody></table></div></div>`;
+  <div class="wrap"><table><thead><tr>${cols.map(c=>`<th class="${c[2]||""}">${c[1]}</th>`).join("")}</tr></thead><tbody>${body||'<tr><td colspan="${cols.length}" class="mute">Nothing to scrub.</td></tr>'}</tbody></table></div></div>`;
 }
 const data={};
-window.dl=t=>{const r=data[t]||[];const csv=[cols.map(c=>c[1]).join(",")].concat(r.map(x=>cols.map(([k])=>`"${String(x[k]||"").replace(/"/g,'""')}"`).join(","))).join("\n");
+window.dl=t=>{const r=data[t]||[];const cols=t==="Discontinued below screen"?ALLCOLS.filter(c=>c[0]!=="supply_status"):ALLCOLS;const csv=[cols.map(c=>c[1]).join(",")].concat(r.map(x=>cols.map(([k])=>`"${String(x[k]||"").replace(/"/g,'""')}"`).join(","))).join("\n");
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=t.replace(/\W+/g,"_")+".csv";a.click();};
 $("isr").onchange=()=>{if($("isr").value)$("branch").value=""}; $("branch").onchange=()=>{if($("branch").value)$("isr").value=""};
 $("go").onclick=async()=>{
   $("msg").textContent="Scrubbing..."; $("msg").className="hint"; $("out").innerHTML="";
   if($("s1").checked&&!$("codes").value.trim()){$("msg").textContent="Enter the discontinued status code(s) first.";$("msg").className="hint err";return}
   try{
-    const r=await fetch("/api/scrub",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({isr:$("isr").value,branch:$("branch").value,codes:$("codes").value,discontinued:$("s1").checked,low_gp:$("s2").checked})});
+    const r=await fetch("/api/scrub",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({isr:$("isr").value,branch:$("branch").value,codes:$("codes").value,discontinued:$("s1").checked,low_gp:$("s2").checked,statuses:[...document.querySelectorAll(".st:checked")].map(x=>x.value)})});
     if(!r.ok)throw new Error(await r.text()); const d=await r.json();
     const k=x=>new Set((x||[]).map(r=>r.control_number+"|"+r.line_number));
     const T1="Discontinued below screen",T2="Low GP no source note"; data[T1]=d.discontinued;data[T2]=d.low_gp;

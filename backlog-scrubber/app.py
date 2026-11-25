@@ -43,7 +43,8 @@ def scrub():
         codes = ",".join(c.strip() for c in body.get("codes", "").split(",") if c.strip())
         out["discontinued"] = run(queries.DISCONTINUED, {**base, "codes": codes}) if codes else []
     if body.get("low_gp"):
-        out["low_gp"] = run(queries.LOW_GP, base)
+        statuses = body.get("statuses") or ["On order", "Needs ordering"]
+        out["low_gp"] = run(queries.LOW_GP, {**base, "statuses": ",".join(statuses)})
     return jsonify(out)
 
 

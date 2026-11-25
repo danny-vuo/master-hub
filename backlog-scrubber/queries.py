@@ -52,8 +52,12 @@ ORDER BY control_number, line_number
 """
 
 # Scrub 2 - lines shipping from any warehouse except IW and GT, GP% under 15%, and no
-# source note on the order, and stock at the shipping warehouse that does not cover the open
-# qty (no stock, partial stock, or on order). A comment that is only NCNR (or "NCNR ACKNOWLEDGED") does not count.
+# source note on the order. A comment that is only NCNR (or "NCNR ACKNOWLEDGED") does not count.
+# Each line gets a supply status at its shipping warehouse:
+#   In stock        on hand covers the open qty
+#   On order        short on hand, but on hand + on order covers it
+#   Needs ordering  short, and nothing (or not enough) is on order
+# :statuses is a comma list of the statuses to return.
 LOW_GP = """
 WITH stock AS (
   SELECT product_code, part_number, location_code,
@@ -68,28 +72,41 @@ notes AS (
                   THEN 1 ELSE 0 END) AS has_note
   FROM me_prod.gold_sales.sourcing_comments
   GROUP BY control_number, location_code
-)
-SELECT b.control_number, b.line_number, b.customer_code, c.bt_customer_name AS customer_name,
-       b.part_number, b.open_quantity AS quantity, b.unit_resale AS resale,
-       concat('GP ', round(100 * (b.unit_resale - coalesce(b.ship_debit_cost, b.unit_cost)) / b.unit_resale, 1),
-              '% (under 15%), ', b.location_code, ': ',
-              CASE WHEN coalesce(s.on_hand, 0) <= 0 THEN 'no stock' ELSE concat('only ', cast(s.on_hand AS int), ' in stock') END,
-              CASE WHEN coalesce(s.on_order, 0) > 0 THEN concat(', ', cast(s.on_order AS int), ' on order') ELSE '' END,
-              ', no source note') AS reason
-FROM me_prod.gold_sales.backlog_detail b
-LEFT JOIN notes n ON n.control_number = b.control_number AND n.location_code = b.location_code
-LEFT JOIN stock s ON s.product_code = b.product_code AND s.part_number = b.part_number
-                 AND s.location_code = b.location_code
-LEFT JOIN me_prod.gold_customers.customer_profile c ON c.customer_code = b.customer_code
-LEFT JOIN me_prod.gold_sales.lkp_isr i ON i.isr = b.isr
-WHERE b.location_code NOT IN ('IW', 'GT')
-  AND coalesce(s.on_hand, 0) < b.open_quantity
-  AND coalesce(n.has_note, 0) = 0
-  AND b.open_quantity > 0
-  AND b.unit_resale > 0
-  AND (b.unit_resale - coalesce(b.ship_debit_cost, b.unit_cost)) / b.unit_resale < 0.15
+),
+base AS (
+  SELECT b.control_number, b.line_number, b.customer_code, c.bt_customer_name AS customer_name,
+         b.part_number, b.open_quantity AS quantity, b.unit_resale AS resale, b.location_code,
+         100 * (b.unit_resale - coalesce(b.ship_debit_cost, b.unit_cost)) / b.unit_resale AS gp,
+         coalesce(s.on_hand, 0) AS on_hand, coalesce(s.on_order, 0) AS on_order,
+         CASE WHEN coalesce(s.on_hand, 0) >= b.open_quantity THEN 'In stock'
+              WHEN coalesce(s.on_hand, 0) + coalesce(s.on_order, 0) >= b.open_quantity THEN 'On order'
+              ELSE 'Needs ordering' END AS supply_status
+  FROM me_prod.gold_sales.backlog_detail b
+  LEFT JOIN notes n ON n.control_number = b.control_number AND n.location_code = b.location_code
+  LEFT JOIN stock s ON s.product_code = b.product_code AND s.part_number = b.part_number
+                   AND s.location_code = b.location_code
+  LEFT JOIN me_prod.gold_customers.customer_profile c ON c.customer_code = b.customer_code
+  LEFT JOIN me_prod.gold_sales.lkp_isr i ON i.isr = b.isr
+  WHERE b.location_code NOT IN ('IW', 'GT')
+    AND coalesce(n.has_note, 0) = 0
+    AND b.open_quantity > 0
+    AND b.unit_resale > 0
+    AND (b.unit_resale - coalesce(b.ship_debit_cost, b.unit_cost)) / b.unit_resale < 0.15
 """ + FILTER + """
-ORDER BY b.control_number, b.line_number
+)
+SELECT control_number, line_number, customer_code, customer_name, part_number, quantity, resale,
+       supply_status,
+       concat('GP ', round(gp, 1), '% (under 15%), ', location_code, ': ',
+              CASE supply_status
+                WHEN 'In stock' THEN concat(cast(on_hand AS int), ' in stock')
+                WHEN 'On order' THEN concat(cast(on_hand AS int), ' in stock, ', cast(on_order AS int), ' on order')
+                ELSE concat(CASE WHEN on_hand <= 0 THEN 'no stock' ELSE concat('only ', cast(on_hand AS int), ' in stock') END,
+                            CASE WHEN on_order > 0 THEN concat(', only ', cast(on_order AS int), ' on order') ELSE ', nothing on order' END,
+                            ', needs ordering') END,
+              ', no source note') AS reason
+FROM base
+WHERE array_contains(split(:statuses, ','), supply_status)
+ORDER BY control_number, line_number
 """
 
 ISRS = """

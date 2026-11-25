@@ -57,7 +57,9 @@ ORDER BY control_number, line_number
 # Cost per line: ship-and-debit cost if present, else the Regular Costing break (gold_products.cost,
 # USD) for the part's TOTAL quantity on the sales order across all its schedules (highest break at or
 # below that quantity; the first break when the quantity is under it), else the line's own cost.
-# Margin is judged on the whole order (:judge = 'order') or on each line alone (:judge = 'line').
+# Margin is judged per item on the sales order (:judge = 'item'): only identical parts (same product code and
+# part number) are combined across the order's lines and schedules; different parts never offset each other.
+# Or on each line alone (:judge = 'line').
 # Supply status at the shipping warehouse: In stock / On order / Needs ordering (:statuses is a list).
 LOW_GP = """
 WITH sc AS (
@@ -106,7 +108,7 @@ ot AS (
   GROUP BY o.control_number, o.part_number
 ),
 base0 AS (
-  SELECT b.control_number, b.line_number, b.customer_code, c.bt_customer_name AS customer_name,
+  SELECT b.control_number, b.product_code AS pc, b.line_number, b.customer_code, c.bt_customer_name AS customer_name,
          b.isr, i.location_code AS br, b.part_number, b.open_quantity AS quantity, b.unit_resale AS resale,
          coalesce(b.line_entry_date, b.order_date) AS order_entry_date, b.location_code AS loc, ot.tq, coalesce(n.has_note, 0) AS nn, b.ship_debit_cost AS sdc, b.unit_cost AS lc,
          coalesce(element_at(sort_array(filter(rc.t, x -> x.q <= ot.tq)), -1), element_at(sort_array(rc.t), 1)) AS brk,
@@ -139,15 +141,15 @@ base2 AS (
   FROM base1
 ),
 base AS (
-  SELECT *, 100 * sum(prf) OVER (PARTITION BY control_number)
-                / sum(rev) OVER (PARTITION BY control_number) AS order_gp
+  SELECT *, 100 * sum(prf) OVER (PARTITION BY control_number, pc, part_number)
+                / sum(rev) OVER (PARTITION BY control_number, pc, part_number) AS item_gp
   FROM base2
 )
 SELECT control_number, line_number, customer_code, customer_name, br AS branch, part_number, quantity, resale,
        round(quantity * resale, 2) AS extended_resale, order_entry_date,
-       supply_status, round(cost, 4) AS cost, round(line_gp, 1) AS line_gp, round(order_gp, 1) AS order_gp,
-       concat(CASE WHEN :judge = 'line' THEN concat('Line GP ', round(line_gp, 1), '% (order ', round(order_gp, 1), '%)')
-                   ELSE concat('Order GP ', round(order_gp, 1), '% (line ', round(line_gp, 1), '%)') END,
+       supply_status, round(cost, 4) AS cost, round(line_gp, 1) AS line_gp, round(item_gp, 1) AS item_gp,
+       concat(CASE WHEN :judge = 'line' THEN concat('Line GP ', round(line_gp, 1), '% (item ', round(item_gp, 1), '%)')
+                   ELSE concat('Item GP ', round(item_gp, 1), '% (line ', round(line_gp, 1), '%)') END,
               ' under 15%, cost $', round(cost, 4), ' (', cost_source, ', order qty ', cast(tq AS bigint), '), ', loc, ': ',
               CASE supply_status
                 WHEN 'In stock' THEN concat(cast(oh AS int), ' in stock')
@@ -159,7 +161,7 @@ SELECT control_number, line_number, customer_code, customer_name, br AS branch, 
 FROM base
 WHERE loc NOT IN ('IW', 'GT') AND nn = 0
   AND (:isr = '' OR isr = :isr) AND (:branch = '' OR br = :branch)
-  AND (CASE WHEN :judge = 'line' THEN line_gp ELSE order_gp END) < 15
+  AND (CASE WHEN :judge = 'line' THEN line_gp ELSE item_gp END) < 15
   AND array_contains(split(:statuses, ','), supply_status)
 ORDER BY control_number, line_number
 """

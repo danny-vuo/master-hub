@@ -5,7 +5,22 @@ from databricks.sdk.core import Config
 import queries
 
 app = Flask(__name__, static_folder="static")
-cfg = Config()
+# In Databricks Apps the platform supplies credentials. Run on your own computer, the app signs
+# you in through your browser (OAuth) and runs queries as you.
+LOCAL = "DATABRICKS_APP_PORT" not in os.environ
+_cfg = None
+
+
+def get_cfg():
+    """Create the credentials on first use, so the app starts instantly and the browser
+    sign-in only appears when a query actually runs."""
+    global _cfg
+    if _cfg is None:
+        _cfg = (Config(host=os.environ["DATABRICKS_HOST"], auth_type="external-browser")
+                if LOCAL else Config())
+    return _cfg
+
+
 WAREHOUSE = os.environ["DATABRICKS_WAREHOUSE_ID"]
 
 # Status codes that mean "discontinued" in the product master. Set DISCONTINUED_CODES
@@ -14,12 +29,18 @@ DEFAULT_CODES = os.environ.get("DISCONTINUED_CODES", "")
 
 
 def run(query, params):
+    cfg = get_cfg()
     with sql.connect(server_hostname=cfg.host, http_path=f"/sql/1.0/warehouses/{WAREHOUSE}",
                      credentials_provider=lambda: cfg.authenticate) as conn:
         with conn.cursor() as cur:
             cur.execute(query, params)
             cols = [d[0] for d in cur.description]
             return [dict(zip(cols, [str(v) if v is not None else "" for v in r])) for r in cur.fetchall()]
+
+
+@app.errorhandler(Exception)
+def fail(e):
+    return (str(e), 500)
 
 
 @app.get("/")
@@ -49,4 +70,4 @@ def scrub():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("DATABRICKS_APP_PORT", 8000)))
+    app.run(host="127.0.0.1" if LOCAL else "0.0.0.0", port=int(os.environ.get("DATABRICKS_APP_PORT", 8000)))

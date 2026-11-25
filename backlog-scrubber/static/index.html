@@ -52,7 +52,7 @@ h2{margin:0 0 8px;font-size:15px}.hint{font-size:12px;color:var(--mute);margin-t
 </main>
 <script>
 const $=id=>document.getElementById(id);
-const ALLCOLS=[["control_number","Control #"],["customer_code","Customer #"],["customer_name","Customer"],["part_number","Part #"],["quantity","Qty","n"],["resale","Resale","n"],["cost","Cost","n"],["line_gp","Line GP %","n"],["order_gp","Order GP %","n"],["supply_status","Supply"],["reason","Why pulled"]];
+const ALLCOLS=[["control_number","Control #"],["customer_code","Customer #"],["customer_name","Customer"],["order_entry_date","Order entry date"],["part_number","Part #"],["quantity","Qty","n"],["resale","Resale","n"],["cost","Cost","n"],["line_gp","Line GP %","n"],["order_gp","Order GP %","n"],["supply_status","Supply"],["reason","Why pulled"]];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let isrs=[];
 async function init(){

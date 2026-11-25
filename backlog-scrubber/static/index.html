@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Backlog Scrubber</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1b2430;--mute:#667085;--line:#e3e7ee;--acc:#d9762b;--hit:#fff4e8}
+@media(prefers-color-scheme:dark){:root{--bg:#12161c;--card:#1b212a;--ink:#e8ecf2;--mute:#9aa6b8;--line:#2c3440;--hit:#33261a}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,sans-serif}
+header{padding:16px 20px;border-bottom:1px solid var(--line);background:var(--card)}h1{margin:0;font-size:18px}
+main{padding:16px 20px;max-width:1200px;margin:auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}label{display:flex;flex-direction:column;font-size:12px;color:var(--mute);gap:4px}
+select,input[type=text]{padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);min-width:170px}
+.chk{flex-direction:row;align-items:center;gap:6px;color:var(--ink);font-size:14px}
+button{background:var(--acc);color:#fff;border:0;border-radius:6px;padding:9px 16px;font-weight:600;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);font-size:13px}
+th{color:var(--mute);font-weight:600;position:sticky;top:0;background:var(--card)}td.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.both td{background:var(--hit)}.wrap{overflow:auto;max-height:55vh}.mute{color:var(--mute)}.err{color:#c0392b}
+h2{margin:0 0 8px;font-size:15px}.hint{font-size:12px;color:var(--mute);margin-top:8px}
+</style></head><body>
+<header><h1>Backlog Scrubber</h1></header>
+<main>
+<div class="card">
+  <div class="row">
+    <label>ISR<select id="isr"><option value="">All ISRs</option></select></label>
+    <label>Branch<select id="branch"><option value="">All branches</option></select></label>
+    <label>Discontinued status code(s)<input id="codes" type="text" placeholder="e.g. K,B"></label>
+  </div>
+  <div class="row" style="margin-top:12px">
+    <label class="chk"><input type="checkbox" id="s1" checked> Discontinued, in stock, resale below screen</label>
+    <label class="chk"><input type="checkbox" id="s2" checked> Low GP (&lt;15%), non-IW/GT, no source note</label>
+    <button id="go">Run scrub</button>
+  </div>
+  <div class="hint">Pick an ISR or a branch (or neither for everything). The two scrubs run independently; a line that hits both shows in both and is highlighted.</div>
+  <div id="msg" class="hint"></div>
+</div>
+<div id="out"></div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const cols=[["control_number","Control #"],["customer_code","Customer #"],["customer_name","Customer"],["part_number","Part #"],["quantity","Qty","n"],["resale","Resale","n"],["reason","Why pulled"]];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let isrs=[];
+async function init(){
+  const m=await (await fetch("/api/meta")).json(); isrs=m.isrs; $("codes").value=m.default_codes;
+  $("isr").innerHTML+=isrs.map(r=>`<option value="${esc(r.isr)}">${esc(r.isr)}${r.name?" - "+esc(r.name):""}</option>`).join("");
+  $("branch").innerHTML+=m.branches.map(b=>`<option>${esc(b)}</option>`).join("");
+}
+function table(title,rows,other){
+  const key=r=>r.control_number+"|"+r.line_number;
+  const body=rows.map(r=>`<tr class="${other.has(key(r))?"both":""}">`+cols.map(([k,,c])=>`<td class="${c||""}">${esc(r[k]||"")}${k=="reason"&&other.has(key(r))?" <b>(also on the other scrub)</b>":""}</td>`).join("")+"</tr>").join("");
+  return `<div class="card"><div class="row" style="justify-content:space-between"><h2>${title} <span class="mute">(${rows.length} lines)</span></h2>
+  <button class="ghost" onclick='dl(${JSON.stringify(title)})'>Download CSV</button></div>
+  <div class="wrap"><table><thead><tr>${cols.map(c=>`<th class="${c[2]||""}">${c[1]}</th>`).join("")}</tr></thead><tbody>${body||'<tr><td colspan="7" class="mute">Nothing to scrub.</td></tr>'}</tbody></table></div></div>`;
+}
+const data={};
+window.dl=t=>{const r=data[t]||[];const csv=[cols.map(c=>c[1]).join(",")].concat(r.map(x=>cols.map(([k])=>`"${String(x[k]||"").replace(/"/g,'""')}"`).join(","))).join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=t.replace(/\W+/g,"_")+".csv";a.click();};
+$("isr").onchange=()=>{if($("isr").value)$("branch").value=""}; $("branch").onchange=()=>{if($("branch").value)$("isr").value=""};
+$("go").onclick=async()=>{
+  $("msg").textContent="Scrubbing..."; $("msg").className="hint"; $("out").innerHTML="";
+  if($("s1").checked&&!$("codes").value.trim()){$("msg").textContent="Enter the discontinued status code(s) first.";$("msg").className="hint err";return}
+  try{
+    const r=await fetch("/api/scrub",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({isr:$("isr").value,branch:$("branch").value,codes:$("codes").value,discontinued:$("s1").checked,low_gp:$("s2").checked})});
+    if(!r.ok)throw new Error(await r.text()); const d=await r.json();
+    const k=x=>new Set((x||[]).map(r=>r.control_number+"|"+r.line_number));
+    const T1="Discontinued below screen",T2="Low GP no source note"; data[T1]=d.discontinued;data[T2]=d.low_gp;
+    $("out").innerHTML=(d.discontinued?table(T1,d.discontinued,k(d.low_gp)):"")+(d.low_gp?table(T2,d.low_gp,k(d.discontinued)):"");
+    $("msg").textContent="";
+  }catch(e){$("msg").textContent="Scrub failed: "+e.message;$("msg").className="hint err"}
+};
+init();
+</script></body></html>

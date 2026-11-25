@@ -30,7 +30,7 @@ tiers AS (
 j AS (
   SELECT b.control_number, b.line_number, b.customer_code, c.bt_customer_name AS customer_name,
          b.part_number, b.open_quantity AS quantity, b.unit_resale AS resale, coalesce(b.line_entry_date, b.order_date) AS order_entry_date,
-         s.on_hand,
+         i.location_code AS branch, s.on_hand,
          coalesce(element_at(sort_array(filter(t.t, x -> x.q <= b.open_quantity)), -1).p, t.price_1) AS screen_resale
   FROM me_prod.gold_sales.backlog_detail b
   JOIN me_prod.gold_products.master_product m
@@ -43,7 +43,7 @@ j AS (
     AND b.open_quantity > 0
 """ + FILTER + """
 )
-SELECT control_number, line_number, customer_code, customer_name, part_number, quantity, resale,
+SELECT control_number, line_number, customer_code, customer_name, branch, part_number, quantity, resale,
        round(quantity * resale, 2) AS extended_resale, order_entry_date,
        concat('Discontinued, ', cast(on_hand AS int), ' in stock; resale $', round(resale, 4),
               ' is below screen $', round(screen_resale, 4)) AS reason
@@ -143,7 +143,7 @@ base AS (
                 / sum(rev) OVER (PARTITION BY control_number) AS order_gp
   FROM base2
 )
-SELECT control_number, line_number, customer_code, customer_name, part_number, quantity, resale,
+SELECT control_number, line_number, customer_code, customer_name, br AS branch, part_number, quantity, resale,
        round(quantity * resale, 2) AS extended_resale, order_entry_date,
        supply_status, round(cost, 4) AS cost, round(line_gp, 1) AS line_gp, round(order_gp, 1) AS order_gp,
        concat(CASE WHEN :judge = 'line' THEN concat('Line GP ', round(line_gp, 1), '% (order ', round(order_gp, 1), '%)')

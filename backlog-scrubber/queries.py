@@ -29,7 +29,7 @@ tiers AS (
 ),
 j AS (
   SELECT b.control_number, b.line_number, b.customer_code, c.bt_customer_name AS customer_name,
-         b.part_number, b.open_quantity AS quantity, b.unit_resale AS resale, b.order_date AS order_entry_date,
+         b.part_number, b.open_quantity AS quantity, b.unit_resale AS resale, coalesce(b.line_entry_date, b.order_date) AS order_entry_date,
          s.on_hand,
          coalesce(element_at(sort_array(filter(t.t, x -> x.q <= b.open_quantity)), -1).p, t.price_1) AS screen_resale
   FROM me_prod.gold_sales.backlog_detail b
@@ -107,7 +107,7 @@ ot AS (
 base0 AS (
   SELECT b.control_number, b.line_number, b.customer_code, c.bt_customer_name AS customer_name,
          b.isr, i.location_code AS br, b.part_number, b.open_quantity AS quantity, b.unit_resale AS resale,
-         b.order_date AS order_entry_date, b.location_code AS loc, ot.tq, coalesce(n.has_note, 0) AS nn, b.ship_debit_cost AS sdc, b.unit_cost AS lc,
+         coalesce(b.line_entry_date, b.order_date) AS order_entry_date, b.location_code AS loc, ot.tq, coalesce(n.has_note, 0) AS nn, b.ship_debit_cost AS sdc, b.unit_cost AS lc,
          coalesce(element_at(sort_array(filter(rc.t, x -> x.q <= ot.tq)), -1), element_at(sort_array(rc.t), 1)) AS brk,
          coalesce(s.on_hand, 0) AS oh, coalesce(s.on_order, 0) AS oo,
          CASE WHEN coalesce(s.on_hand, 0) >= b.open_quantity THEN 'In stock'

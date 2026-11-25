@@ -38,7 +38,9 @@ h2{margin:0 0 8px;font-size:15px}.hint{font-size:12px;color:var(--mute);margin-t
     <label class="chk"><input type="checkbox" id="s2" checked> Low GP (&lt;15%), non-IW/GT, no source note, stock short</label>
     <button id="go">Run scrub</button>
   </div>
-  <div class="row" style="margin-top:8px"><span class="mute">Low GP supply status:</span>
+  <div class="row" style="margin-top:8px"><span class="mute">Judge margin by:</span>
+    <select id="judge"><option value="order">Whole order</option><option value="line">Each line</option></select>
+    <span class="mute">Low GP supply status:</span>
     <label class="chk"><input type="checkbox" class="st" value="In stock"> In stock</label>
     <label class="chk"><input type="checkbox" class="st" value="On order" checked> On order</label>
     <label class="chk"><input type="checkbox" class="st" value="Needs ordering" checked> Needs ordering (short, and not enough on order)</label>
@@ -50,7 +52,7 @@ h2{margin:0 0 8px;font-size:15px}.hint{font-size:12px;color:var(--mute);margin-t
 </main>
 <script>
 const $=id=>document.getElementById(id);
-const ALLCOLS=[["control_number","Control #"],["customer_code","Customer #"],["customer_name","Customer"],["part_number","Part #"],["quantity","Qty","n"],["resale","Resale","n"],["supply_status","Supply"],["reason","Why pulled"]];
+const ALLCOLS=[["control_number","Control #"],["customer_code","Customer #"],["customer_name","Customer"],["part_number","Part #"],["quantity","Qty","n"],["resale","Resale","n"],["cost","Cost","n"],["line_gp","Line GP %","n"],["order_gp","Order GP %","n"],["supply_status","Supply"],["reason","Why pulled"]];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let isrs=[];
 async function init(){
@@ -74,7 +76,7 @@ $("go").onclick=async()=>{
   $("msg").textContent="Scrubbing..."; $("msg").className="hint"; $("out").innerHTML="";
   if($("s1").checked&&!$("codes").value.trim()){$("msg").textContent="Enter the discontinued status code(s) first.";$("msg").className="hint err";return}
   try{
-    const r=await fetch("/api/scrub",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({isr:$("isr").value,branch:$("branch").value,codes:$("codes").value,discontinued:$("s1").checked,low_gp:$("s2").checked,statuses:[...document.querySelectorAll(".st:checked")].map(x=>x.value)})});
+    const r=await fetch("/api/scrub",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({isr:$("isr").value,branch:$("branch").value,codes:$("codes").value,discontinued:$("s1").checked,low_gp:$("s2").checked,statuses:[...document.querySelectorAll(".st:checked")].map(x=>x.value),judge:$("judge").value})});
     if(!r.ok)throw new Error(await r.text()); const d=await r.json();
     const k=x=>new Set((x||[]).map(r=>r.control_number+"|"+r.line_number));
     const T1="Discontinued below screen",T2="Low GP no source note"; data[T1]=d.discontinued;data[T2]=d.low_gp;

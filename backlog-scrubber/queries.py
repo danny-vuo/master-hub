@@ -43,7 +43,8 @@ j AS (
     AND b.open_quantity > 0
 """ + FILTER + """
 )
-SELECT control_number, line_number, customer_code, customer_name, part_number, quantity, resale, order_entry_date,
+SELECT control_number, line_number, customer_code, customer_name, part_number, quantity, resale,
+       round(quantity * resale, 2) AS extended_resale, order_entry_date,
        concat('Discontinued, ', cast(on_hand AS int), ' in stock; resale $', round(resale, 4),
               ' is below screen $', round(screen_resale, 4)) AS reason
 FROM j
@@ -142,7 +143,8 @@ base AS (
                 / sum(rev) OVER (PARTITION BY control_number) AS order_gp
   FROM base2
 )
-SELECT control_number, line_number, customer_code, customer_name, part_number, quantity, resale, order_entry_date,
+SELECT control_number, line_number, customer_code, customer_name, part_number, quantity, resale,
+       round(quantity * resale, 2) AS extended_resale, order_entry_date,
        supply_status, round(cost, 4) AS cost, round(line_gp, 1) AS line_gp, round(order_gp, 1) AS order_gp,
        concat(CASE WHEN :judge = 'line' THEN concat('Line GP ', round(line_gp, 1), '% (order ', round(order_gp, 1), '%)')
                    ELSE concat('Order GP ', round(order_gp, 1), '% (line ', round(line_gp, 1), '%)') END,

@@ -1,10 +1,10 @@
 """SQL for the two Backlog Scrubber scrubs. Kept separate so they never share logic."""
 
 # Filters (both scrubs): :isr and :branch are '' when not used.
-# "Branch" = the ISR's sales branch (lkp_isr.location_name).
+# "Branch" = the ISR's sales branch code (lkp_isr.location_code, e.g. UI), not a warehouse.
 FILTER = """
   AND (:isr = '' OR b.isr = :isr)
-  AND (:branch = '' OR i.location_name = :branch)
+  AND (:branch = '' OR i.location_code = :branch)
 """
 
 # Scrub 1 - discontinued parts Master has in stock, where line resale < screen resale.
@@ -93,7 +93,7 @@ ORDER BY b.control_number, b.line_number
 """
 
 ISRS = """
-SELECT DISTINCT b.isr, i.name, i.location_name AS branch
+SELECT DISTINCT b.isr, i.name, i.location_code AS branch, i.location_name AS branch_name
 FROM me_prod.gold_sales.backlog_detail b
 LEFT JOIN me_prod.gold_sales.lkp_isr i ON i.isr = b.isr
 WHERE b.isr IS NOT NULL

@@ -44,7 +44,7 @@ let isrs=[];
 async function init(){
   const m=await (await fetch("/api/meta")).json(); isrs=m.isrs; $("codes").value=m.default_codes;
   $("isr").innerHTML+=isrs.map(r=>`<option value="${esc(r.isr)}">${esc(r.isr)}${r.name?" - "+esc(r.name):""}</option>`).join("");
-  $("branch").innerHTML+=m.branches.map(b=>`<option>${esc(b)}</option>`).join("");
+  $("branch").innerHTML+=m.branches.map(b=>`<option value="${esc(b[0])}">${esc(b[0])} - ${esc(b[1])}</option>`).join("");
 }
 function table(title,rows,other){
   const key=r=>r.control_number+"|"+r.line_number;

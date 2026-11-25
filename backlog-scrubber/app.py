@@ -31,7 +31,7 @@ def index():
 def meta():
     rows = run(queries.ISRS, {})
     return jsonify(isrs=rows, default_codes=DEFAULT_CODES,
-                   branches=sorted({r["branch"] for r in rows if r["branch"]}))
+                   branches=sorted({(r["branch"], r["branch_name"]) for r in rows if r["branch"]}))
 
 
 @app.post("/api/scrub")
